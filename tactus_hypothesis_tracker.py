@@ -3,8 +3,7 @@ to generate complete hypothesis trackers for the playback of a case."""
 
 import playback
 import defaults
-
-from tesis.rhythm.tactus import hypothesis
+import hypothesis
 
 
 class HypothesisTracker(hypothesis.HypothesisFromIndex):

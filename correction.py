@@ -5,7 +5,7 @@ import utils
 import math
 
 import numpy as np
-import tesis.rhythm.tactus.hypothesis as hs
+import hypothesis as hs
 
 from scipy import stats
 
