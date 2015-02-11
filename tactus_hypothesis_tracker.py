@@ -4,6 +4,7 @@ to generate complete hypothesis trackers for the playback of a case."""
 import localdeps # NOQA
 import gflags
 import playback
+import defaults
 
 from tesis.rhythm.tactus import hypothesis
 
@@ -80,7 +81,7 @@ class HypothesisTracker(hypothesis.HypothesisFromIndex):
         return (self.beta[0], sum(self.beta))
 
 
-class TactusTrackersGenerator():
+class TactusHypothesisTracker():
     """Configurable class to generate hypothesis trackers
     for a case.
 
@@ -149,3 +150,8 @@ class TactusTrackersGenerator():
             else:
                 kept_hs.append(h)
         return (kept_hs, trimmed_hs_data)
+
+
+def default_tht():
+    'Returns a TactusHypothesisTracker with the default configuration'
+    return TactusHypothesisTracker(**defaults.config)
