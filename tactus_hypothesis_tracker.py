@@ -1,39 +1,10 @@
 """This module contains the TactusTrackersGenerator class that can be configured
 to generate complete hypothesis trackers for the playback of a case."""
 
-import localdeps # NOQA
-import gflags
 import playback
 import defaults
 
 from tesis.rhythm.tactus import hypothesis
-
-from debug_output import dstr, for_debug
-
-
-gflags.DEFINE_bool('report_trims', False,
-                   'Defines whether to print information on hypothesis trims.')
-
-
-FLAGS = gflags.FLAGS
-
-
-@for_debug
-def status_report(ongoing_play, hypothesis_trackers, trimmed_hs):
-    pnt_advance = int(18 *
-                      (ongoing_play.discovered_index + 1)
-                      / float(len(ongoing_play.onset_times)))
-    adv_str = (('=' * pnt_advance +
-                (' ' * (18 - pnt_advance))))
-    dstr.write('\r[%s] (%d/%d) | Hts: %d' % (adv_str,
-                                             ongoing_play.discovered_index,
-                                             len(ongoing_play.onset_times),
-                                             len(hypothesis_trackers)))
-    if FLAGS.report_trims:
-        print >>dstr, ''
-        print >>dstr, 'Step:', ongoing_play.discovered_index
-        for trimmed_h, original_h in trimmed_hs:
-            print >>dstr, '%s -> %s' % (trimmed_h.name, original_h.name)
 
 
 class HypothesisTracker(hypothesis.HypothesisFromIndex):
@@ -120,7 +91,6 @@ class TactusHypothesisTracker():
             kept_hs, trimmed_hs = self._trim_hypothesis(hypothesis_trackers,
                                                         ongoing_play)
             hypothesis_trackers = kept_hs
-            status_report(ongoing_play, hypothesis_trackers, trimmed_hs)
 
         return dict([(ht.name, ht) for ht in hypothesis_trackers])
 
