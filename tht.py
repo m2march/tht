@@ -17,10 +17,12 @@ def main():
     m = midi.MidiPlayback(argv[1])
     trackers = tht(m.onset_times_in_ms())
     for name, tracker in trackers.items():
-        print str(tracker)
-        print tracker.beta
-        print tracker.conf
-        print tracker.corr
+        print 'ht name', tracker.name
+        print 'ht beta %f %f' % tracker.beta
+        for n, corr in tracker.corr:
+            print 'ht corr %d %f %f' % (n, corr.n_rho, corr.n_delta)
+        for n, conf in tracker.conf:
+            print 'ht conf %d %f' % (n, conf)
 
 
 if __name__ == '__main__':
