@@ -68,7 +68,7 @@ Other lines present in the output are:
 
 * `ht beta _phase_ _delta_` where _phase_ and _delta_ are the phase and
     inter-pulse-interval of the tactus, respectively, of the moment the
-    hypothesis was first created.
+    hypothesis was first created. Values are in milliseconds.
 * `ht conf _n_ _value_` provide the confidence _value_ of the hypothesis at
     onset _n_ of the playback.
 * `ht corr _n_ _phase_ _delta_` define the correction made to the hypothesis at
