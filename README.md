@@ -22,6 +22,15 @@ The usable version of the model is implemented in `tht.py`. A use example is:
 
     $> python tht.py tap-dataset/dorrance-transcript.mid
 
+### Dependencies
+
+The code here presented has the following dependencies:
+
+* [python-midi](https://github.com/vishnubob/python-midi)
+* [numpy](http://www.numpy.org/)
+* [more_itertools](https://pypi.python.org/pypi/more-itertools)
+
+It also uses `unittest` and `mock` for the tests.
 
 ## Results
 
