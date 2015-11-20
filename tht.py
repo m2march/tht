@@ -1,5 +1,7 @@
 #!/usr/bin/python
-'Utility to run the Tactus Hypothesis Tracker model on a midi file'
+'''Utility to run the Tactus Hypothesis Tracker model on a midi file.
+Usage: tht.py midi_file ARGS
+'''
 
 import gflags
 import sys
