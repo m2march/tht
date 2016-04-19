@@ -62,6 +62,14 @@ class MidiPlayback():
                         if isinstance(e, midi.NoteEvent)])) == 1, \
             'More than one channel found in: %s' % midi_file_name
 
+        def _process_offevent(on_notes, offset):
+            onset = on_notes[(e.pitch, e.channel)].popleft()
+            self.notes.append(
+                Note(tick=onset.tick, pitch=onset.pitch,
+                     velocity=onset.velocity, channel=onset.channel,
+                     bpm=self.bpm, resolution=self.resolution,
+                     duration=offset.tick - onset.tick))
+
         pattern.make_ticks_abs()
         self.resolution = pattern.resolution
         self.bpm = [e for t in pattern for e in t
@@ -74,14 +82,11 @@ class MidiPlayback():
                 if isinstance(e, midi.NoteOnEvent):
                     if (e.pitch, e.channel) not in on_notes:
                         on_notes[(e.pitch, e.channel)] = c.deque()
+                    elif (e.velocity == 0):
+                        _process_offevent(on_notes, e)
                     on_notes[(e.pitch, e.channel)].append(e)
                 elif isinstance(e, midi.NoteOffEvent):
-                    onset = on_notes[(e.pitch, e.channel)].popleft()
-                    self.notes.append(
-                        Note(tick=onset.tick, pitch=onset.pitch,
-                             velocity=onset.velocity, channel=onset.channel,
-                             bpm=self.bpm, resolution=self.resolution,
-                             duration=e.tick - onset.tick))
+                    _process_offevent(on_notes, e)
         self.notes.sort()
 
     def collapse_onset_times(self):

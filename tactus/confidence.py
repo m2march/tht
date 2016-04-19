@@ -17,5 +17,8 @@ def eval(ht, ongoing_play):
     'Evaluates a hypothesis on an ongoing_play.'
     proj = ht.proj(ongoing_play)
     conf_sum = sum(conf(proj, ongoing_play, ht.d))
+    assert len(proj) > 0, ('Projection of ht (%d, %d) on ongoing_play (%s) is empty' %
+             (ht.r, ht.d, ongoing_play.discovered_play()))
+    assert len(ongoing_play.discovered_play()) > 0, ('Ongoing play (%s) has no onsets' % ongoing_play)
     return ((conf_sum / len(proj)) *
             (conf_sum / len(ongoing_play.discovered_play())))

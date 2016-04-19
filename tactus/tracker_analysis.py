@@ -78,3 +78,12 @@ def create_trackers_segments(hypothesis_ranks_overtime, trackers_to_show):
                 trackers_segments[t].append(last_segment)
 
     return trackers_segments
+
+
+def tracker_dump(tracker, stream):
+    print >> stream, 'ht name', tracker.name
+    print >> stream, 'ht beta %f %f' % tracker.beta
+    for n, corr in tracker.corr:
+        print >> stream, 'ht corr %d %f %f' % (n, corr.n_rho, corr.n_delta)
+    for n, conf in tracker.conf:
+        print >> stream, 'ht conf %d %f' % (n, conf)

@@ -1,4 +1,4 @@
-"""Modulec containing functions to measure similarity between two hypothesis
+"""Module containing functions to measure similarity between two hypothesis
 trackers with respect to a ongoing playback."""
 
 import confidence
@@ -19,8 +19,17 @@ def id_sim(h, i, ongoing_play):
 
 
 def min_dist_sim(h, i, *args):
-    'Similarity index comes from relative similarity at their closest point.'
+    """
+    Similarity index comes from relative similarity at their closest point.
+
+    Asumes i is a newer hypothesis than h.
+
+    For how dR is calculated, see ttps://goo.gl/photos/pSQ6gkvgPkn2D4rm9
+    """
+    assert i.r > h.r
     D = abs(h.d - i.d)
+    dD = D / max(h.d, i.d)
     R = abs(i.r - h.r) % h.d
     A = h.d / 2
-    return 1 - max(D / max(h.d, i.d), (A - abs(R - A)) / A)
+    dR = (A - abs(R - A)) / A
+    return 1 - max(dD, dR)
