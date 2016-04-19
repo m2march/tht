@@ -24,7 +24,7 @@ def min_dist_sim(h, i, *args):
 
     Asumes i is a newer hypothesis than h.
 
-    For how dR is calculated, see ttps://goo.gl/photos/pSQ6gkvgPkn2D4rm9
+    For how dR is calculated, see https://goo.gl/photos/pSQ6gkvgPkn2D4rm9
     """
     assert i.r > h.r
     D = abs(h.d - i.d)

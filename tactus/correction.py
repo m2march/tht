@@ -10,6 +10,10 @@ import hypothesis as hs
 from scipy import stats
 
 
+def error_conf(error, multiplicator, decay, delta):
+    return multiplicator * error * (decay ** (np.abs(error) / float(delta)))
+
+
 class HypothesisCorrection():
     """Structure holding information of each hypothesis correction.
 
@@ -48,13 +52,15 @@ class HypothesisCorrectionMethod(object):
 class LinearRegressOverSmoothedErrorCorrection(HypothesisCorrectionMethod):
     """Generates a HypothesisCorrection for the hypothesis and the ongoing play.
 
-    Correcion is performed using a linear regression with the x values being
+    Correction is performed using a linear regression with the x values being
     those corresponding to the projection of the hypothesis. The y values are
     the error of the hypothesis prediction versus the closest onset for each
     passed through a smoothing function that tones down outliers.
     The linear regression then generates a intercept and slope value that
     minimize the mse between x and y. The intercept and slope values are
     considered the new rho and delta values of the hypothesis.
+
+    Complexity: O(|ongoing_play|)
     """
 
     def __init__(self, multiplicator=1.0, decay=0.01):
@@ -67,7 +73,7 @@ class LinearRegressOverSmoothedErrorCorrection(HypothesisCorrectionMethod):
         r_p = utils.real_proj(p, ongoing_play)
 
         err = r_p - p
-        conf = self.mult * err * (self.decay ** (np.abs(err) / float(ht.d)))
+        conf = error_conf(err, self.mult, self.decay, ht.d)
 
         (delta_delta, delta_rho, r_value,
          p_value, stderr) = stats.linregress(xs, conf)

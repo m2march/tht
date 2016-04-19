@@ -5,6 +5,7 @@ import playback
 import defaults
 import hypothesis
 import collections
+import logging
 
 
 class HypothesisTracker(hypothesis.HypothesisFromIndex):
@@ -17,7 +18,7 @@ class HypothesisTracker(hypothesis.HypothesisFromIndex):
     to originate the hypothesis. The 'beta' value is the first hypothesis.
     'corr' contains a list of Correction objects with information about
     each correction performed over the hypothesis. 'cur' is the current value
-    of the hypothesis. 'conf' contains the evolution of the confidence for
+    of the hypothesis. 'confs' contains the evolution of the confidence for
     the hypothesis.
 
     The tracker also contains some convenience methods to work with the
@@ -33,8 +34,9 @@ class HypothesisTracker(hypothesis.HypothesisFromIndex):
     def __init__(self, start_idx, end_idx, onset_times):
         super(self.__class__, self).__init__(start_idx, end_idx, onset_times)
         self.beta = self.htuple
+        self.onset_times = onset_times
         self.corr = []  # [(onset_idx, hypothesis_correction)]
-        self.conf = []  # [(onset_idx, conf_value)]
+        self.confs = []  # [(onset_idx, conf_value)]
 
     def update(self, ongoing_play, eval_f, corr_f):
         "Updates a hypothesis with new conf and applying corrections."
@@ -42,11 +44,15 @@ class HypothesisTracker(hypothesis.HypothesisFromIndex):
         self.corr.append((ongoing_play.discovered_index, correction))
         self.htuple = correction.new_hypothesis()
         n_conf = eval_f(self, ongoing_play)
-        self.conf.append((ongoing_play.discovered_index, n_conf))
+        self.confs.append((ongoing_play.discovered_index, n_conf))
 
     @property
     def cur(self):
         return self.htuple
+
+    @property
+    def conf(self):
+        return self.confs[-1][1]
 
     def origin_onsets(self):
         return (self.beta[0], sum(self.beta))
@@ -70,6 +76,8 @@ class TactusHypothesisTracker():
     hypothesis trackers
     """
 
+    logger = logging.getLogger('TactusHypothesisTracker')
+
     def __init__(self, eval_f, corr_f, sim_f, similarity_epsilon,
                  min_delta, max_delta, max_hypotheses):
         self.eval_f = eval_f
@@ -81,10 +89,13 @@ class TactusHypothesisTracker():
         self.max_hypotheses = max_hypotheses
 
     def __call__(self, onset_times):
+        self.logger.debug('Started tracking for onsets (%d) : %s',
+                          len(onset_times), onset_times)
         ongoing_play = playback.OngoingPlayback(onset_times)
         hypothesis_trackers = []
         while ongoing_play.advance():
-            n_hts = self._generate_new_hypothesis(ongoing_play)
+            n_hts = list(self._generate_new_hypothesis(ongoing_play))
+            self.logger.debug('New step. %d hypothesis created', len(n_hts))
 
             hypothesis_trackers.extend(n_hts)
 
@@ -93,7 +104,11 @@ class TactusHypothesisTracker():
 
             kept_hs, trimmed_hs = self._trim_similar_hypotheses(
                 hypothesis_trackers, ongoing_play)
-            hypothesis_trackers = kept_hs
+
+            k_best_hs, other_hs = self._split_k_best_hypotheses(kept_hs)
+            hypothesis_trackers = k_best_hs
+            self.logger.debug('End of step. %d trackers remaining',
+                              len(hypothesis_trackers))
 
         return dict([(ht.name, ht) for ht in hypothesis_trackers])
 
@@ -132,6 +147,21 @@ class TactusHypothesisTracker():
             remaining_hts = n_remaining_hts
 
         return (kept_hs, trimmed_hs_data)
+
+    def _split_k_best_hypotheses(self, hts):
+        """Splits hypotheses into the self.max_hypotheses best
+        (according to confidence) and the rest.
+
+        Both result list will be sorted in order of generation."""
+        hts_info = [(-1 * ht.conf, idx) for idx, ht in enumerate(hts)]
+        sorted_hts_info = sorted(hts_info)
+        best_hts_idx = set([
+            i for _, i in sorted_hts_info[:self.max_hypotheses]])
+        best_k_hts = [ht for idx, ht in enumerate(hts)
+                      if idx in best_hts_idx]
+        other_hts = [ht for idx, ht in enumerate(hts)
+                     if idx not in best_hts_idx]
+        return best_k_hts, other_hts
 
 
 def default_tht():

@@ -17,7 +17,7 @@ class TactusCaseAnalyzer:
 
         def _top_hypothesis_iter():
             hts = case['hypothesis_trackers']
-            hts_iterators = [(ht, dict(ht.conf))
+            hts_iterators = [(ht, dict(ht.confs))
                              for ht in hts.values()]
             for key in _sorting_key_gen():
                 yield max(hts_iterators, key=key)[0]
@@ -26,7 +26,7 @@ class TactusCaseAnalyzer:
 
 def sorting_key_gen(onset_idx):
     'Returns the confidence sorting key for hypothesis items at onset index'
-    def key(item):
+    def key(item):  # item :: (ht_name, conf_dict)
         return item[1][onset_idx] if onset_idx in item[1] else None
     return key
 
@@ -85,5 +85,29 @@ def tracker_dump(tracker, stream):
     print >> stream, 'ht beta %f %f' % tracker.beta
     for n, corr in tracker.corr:
         print >> stream, 'ht corr %d %f %f' % (n, corr.n_rho, corr.n_delta)
-    for n, conf in tracker.conf:
+    for n, conf in tracker.confs:
         print >> stream, 'ht conf %d %f' % (n, conf)
+
+
+def top_hypothesis(hts, onset_times_count):
+    '''
+    Given a case, returns a list of top tactus hypothesis
+
+    Returns:
+        :: [(onset_idx :: int, ht :: HypothesisTracker)]
+    '''
+    def _sorting_key_gen():
+        for i in xrange(3, onset_times_count):
+            def key(item):  # item :: (ht_name, conf_dict)
+                return item[1][i] if i in item[1] else None
+            yield (i, key)
+
+    def _top_hypothesis_iter():
+        hts_iterators = [(ht, dict(ht.confs))
+                         for ht in hts.values()]
+        for idx, key in _sorting_key_gen():
+            m = max(hts_iterators, key=key)
+            if key(m) is None:
+                continue
+            yield (idx, m[0])
+    return list(_top_hypothesis_iter())

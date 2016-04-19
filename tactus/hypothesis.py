@@ -31,10 +31,16 @@ class Hypothesis(object):
     def bpm(self):
         return 60000.0 / self.d
 
-    def proj_with_x(self, play):
-        min_x = int(math.ceil((play.min - self.d / 2.0 - self.r) / self.d))
-        max_x = int(math.floor((play.max + self.d / 2.0 - self.r) / self.d))
+    def proj_with_x_in_range(self, min, max):
+        min_x = int(math.ceil((min - self.d / 2.0 - self.r) / self.d))
+        max_x = int(math.floor((max + self.d / 2.0 - self.r) / self.d))
         return ((x, self.r + self.d * x) for x in xrange(min_x, max_x+1))
+
+    def proj_with_x(self, play):
+        return self.proj_with_x_in_range(play.min, play.max)
+
+    def proj_in_range(self, min, max):
+        return np.array([v[1] for v in self.proj_with_x_in_range(min, max)])
 
     def proj(self, play):
         return np.array([v[1] for v in self.proj_with_x(play)])

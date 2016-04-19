@@ -5,10 +5,14 @@ import more_itertools as mit
 
 
 def real_proj(proj, ongoing_play):
-    'Obtains onsets of the ongoing playback that best suit the projection.'
-    ret = np.zeros(len(proj))
-    play_it = mit.peekable(ongoing_play.discovered_play())
-    proj_it = mit.peekable(enumerate(proj))
+    return project(proj, ongoing_play.discovered_play())
+
+
+def project(base, reference):
+    'For each value in base obtains the closest value in reference'
+    ret = np.zeros(len(base))
+    play_it = mit.peekable(reference)
+    proj_it = mit.peekable(enumerate(base))
     last_play_onset = play_it.next()
     while proj_it:
         last_proj_idx, last_proj_onset = proj_it.next()
@@ -21,5 +25,4 @@ def real_proj(proj, ongoing_play):
             else:
                 break
         ret[last_proj_idx] = last_play_onset
-
     return ret
