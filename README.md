@@ -1,26 +1,21 @@
 # Tactus Hypothesis Tracker
 
-This repository contains the `Tactus Hypothesis Tracker` model and
-the _tap_ dataset.
+This repository contains the `Tactus Hypothesis Tracker` model.
 
-The `Tactus Hypothesis Tracker` is a model for
-[tactus](http://en.wikipedia.org/wiki/Pulse_%28music%29) inference over midi
-musical files. The model receives the onsets of a musical passage, in the form
-of a `midi`, and outputs an overtime analysis of tactus hypotheses. The model
-is characterized for relaxing some musical preconceptions used in other systems
-and providing overtime information of confidence and correction of different
-tactus hypotheses.
+The `Tactus Hypothesis Tracker` is a model for cognitive 
+[tactus](http://en.wikipedia.org/wiki/Pulse_%28music%29) tracking (as in
+keeping the beat of a song with your foot). *Tactus inference* means the model
+"listens" to the song and tries to keep track of it's tactus. More
+specifically, the model returns analytic information that allows for further
+analysis such as: which is the most probable tactus at each part of the song?,
+how probable is that tactus?, are there more possible tactus?, when does it
+change?, did the same feeling of tactus adapt to the song or was it overuled by
+another tactus feeling?
 
-The _tap_ dataset is a set of midi files that contain onset information for tap
-dancing performances. This dataset was used to test whether the `tht` model
-works on non-traditional performances. The transcripts in the dataset stand out
-for being rhythmically expressive.
+The model was built intended to mimic the reasoning and workings behind the
+tactus tracking as a cognitive event. More information can be seen in the Ms
+Thesis of the author (*link missing*).
 
-## How to Use
-
-The usable version of the model is implemented in `tht.py`. A use example is:
-
-    $> python tht.py tap-dataset/dorrance-transcript.mid
 
 ### Dependencies
 
@@ -91,13 +86,3 @@ directory. The following is a breakdown of the implemented parts:
     fit the ongoing playback.
 * `similarity.py` contains the similarity measure function between two
     hypothesis.
-
-
-## Tap Dataset
-
-The tap dataset contains 10 transcript from rhythmically expressive
-performances. `guillem-transcript.mid` and `dorrance-transcript.mid` are
-transcripts of tap exercises by professional tap dancers. `base-x-y.mid` are
-improvised patterns. Each pattern was performed and recorded at two different
-tempos: 80 and 100 bpms. The `y` value indicates the base bpm, the `x` value is
-the pattern id.
