@@ -96,7 +96,7 @@ class TactusHypothesisTracker():
             onset_times: a sorted list of ms where the musical events occur.
 
         Returns:
-            A dict :: hypothesis_name -> HypothesisTracker  
+            A dict :: hypothesis_name -> HypothesisTracker
         """
         self.logger.debug('Started tracking for onsets (%d) : %s',
                           len(onset_times), onset_times)
