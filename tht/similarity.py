@@ -26,7 +26,8 @@ def min_dist_sim(h, i, *args):
 
     For how dR is calculated, see https://goo.gl/photos/pSQ6gkvgPkn2D4rm9
     """
-    assert i.r > h.r
+    assert (i.r > h.r or (i.r == h.r and i.d > h.d),
+        'i (%s) is not newer than h (%s)')
     D = abs(h.d - i.d)
     dD = D / max(h.d, i.d)
     R = abs(i.r - h.r) % h.d
