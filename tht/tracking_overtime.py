@@ -30,13 +30,13 @@ class OvertimeTracking:
                 conf = ht.confs[idx][1]
                 onset_time = self.onset_times[onset_idx - 1]
                 hts_at_time = self.time.get(onset_time, [])
-                hts_at_time.append(HypothesisAtTime(hts, onset_idx, corr, conf))
+                hts_at_time.append(HypothesisAtTime(ht, onset_idx, corr, conf))
                 self.time[onset_time] = hts_at_time
 
     def hipothesis_by_time(self):
         'Returns the list of HTS sorted by time'
         times = sorted(self.time.keys())
-        return (self.time[time] for time in times)
+        return ((time, self.time[time]) for time in times)
 
 
 class HypothesisAtTime:

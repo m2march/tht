@@ -64,6 +64,9 @@ class Hypothesis(object):
     def __repr__(self):
         return 'H(%.2f, %.2f)' % self.htuple
 
+    def __lt__(self, other):
+        return self.r < other.r or (self.r == other.r and self.d < other.d)
+
 
 class HypothesisFromIndex(Hypothesis):
     """Represents a hypothesis created from index on onset times.
