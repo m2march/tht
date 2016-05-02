@@ -4,7 +4,7 @@ import confidence
 import correction
 import similarity
 
-eval_f = confidence.eval
+eval_f = confidence.all_history_eval
 corr_f = correction.lin_r_corr_opt
 sim_f = similarity.min_dist_sim
 similarity_epsilon = 0.005

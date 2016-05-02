@@ -24,6 +24,7 @@ The code here presented has the following dependencies:
 * [python-midi](https://github.com/vishnubob/python-midi)
 * [numpy](http://www.numpy.org/)
 * [more_itertools](https://pypi.python.org/pypi/more-itertools)
+* [py.test](https://pytest.org)
 
 It also uses `unittest` and `mock` for the tests.
 

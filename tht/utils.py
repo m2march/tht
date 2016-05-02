@@ -9,7 +9,13 @@ def real_proj(proj, ongoing_play):
 
 
 def project(base, reference):
-    'For each value in base obtains the closest value in reference'
+    '''
+    For each value in base obtains the closest value in reference.
+
+    Args:
+        base: iterable
+        reference: iterable
+    '''
     ret = np.zeros(len(base))
     play_it = mit.peekable(reference)
     proj_it = mit.peekable(enumerate(base))

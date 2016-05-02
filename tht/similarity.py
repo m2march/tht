@@ -9,10 +9,10 @@ def proj_conf_sim(h, i, ongoing_play):
     """Evaluates the similarity between two hypothesis measuring the confidence
     of one on another."""
     proj = playback.Playback(i.proj(ongoing_play))
-    return confidence.eval(h, proj)
+    return confidence.all_history_eval(h, proj)
 
 
-def id_sim(h, i, ongoing_play):
+def id_sim(h, i, ongoing_plall_history_eval
     """Two hypothesis are similar if they have the same delta and equivalent
     phase."""
     return int(h.d == i.d and ((h.r - i.r) / float(i.d)) % 1 == 0)
