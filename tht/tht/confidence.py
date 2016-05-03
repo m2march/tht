@@ -24,7 +24,7 @@ def all_history_eval(ht, ongoing_play):
     Complexity: O(|ongoing_play|)
     '''
     proj = ht.proj(ongoing_play)
-    conf_sum = sum(conf(proj, ongoing_play, ht.d))
+    conf_sum = sum(conf(proj, ongoing_play.discovered_play(), ht.d))
     return ((conf_sum / len(proj)) *
             (conf_sum / len(ongoing_play.discovered_play())))
 

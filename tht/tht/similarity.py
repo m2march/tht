@@ -12,9 +12,10 @@ def proj_conf_sim(h, i, ongoing_play):
     return confidence.all_history_eval(h, proj)
 
 
-def id_sim(h, i, ongoing_plall_history_eval
+def id_sim(h, i, ongoing_play):
     """Two hypothesis are similar if they have the same delta and equivalent
-    phase."""
+    phase.
+    """
     return int(h.d == i.d and ((h.r - i.r) / float(i.d)) % 1 == 0)
 
 
@@ -27,7 +28,7 @@ def min_dist_sim(h, i, *args):
     For how dR is calculated, see https://goo.gl/photos/pSQ6gkvgPkn2D4rm9
     """
     assert (i.r > h.r or (i.r == h.r and i.d > h.d),
-        'i (%s) is not newer than h (%s)')
+            'i (%s) is not newer than h (%s)')
     D = abs(h.d - i.d)
     dD = D / max(h.d, i.d)
     R = abs(i.r - h.r) % h.d

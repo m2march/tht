@@ -7,5 +7,11 @@ setup(name='tht',
       description='Tactus Hypothesis Tracking Module',
       author='Martin "March" Miguel',
       author_email='m2.march@gmail.com',
-      packages=['tht', 'midi'],
+      packages=['tht'],
+      requires=[
+          'python-midi',
+          'numpy',
+          'more_itertools',
+          'py.test'
+      ]
       )

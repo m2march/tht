@@ -19,12 +19,17 @@ Thesis of the author (*link missing*).
 
 ### Dependencies
 
-The code here presented has the following dependencies:
+The code here presented has the following dependencies declared in it's setup
+script:
 
-* [python-midi](https://github.com/vishnubob/python-midi)
 * [numpy](http://www.numpy.org/)
 * [more_itertools](https://pypi.python.org/pypi/more-itertools)
 * [py.test](https://pytest.org)
+
+And this dependency that need to be downloaded independently:
+
+* [python-midi](https://github.com/vishnubob/python-midi)
+
 
 It also uses `unittest` and `mock` for the tests.
 
