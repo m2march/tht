@@ -10,13 +10,17 @@ class OvertimeTracking:
         '''
         Initialize the instance analyze the tracking overtime.
 
+        self.hts: tracking result
+        self.time: time(ms) -> [HypothesisAtTime]
+        self.onset_times: [ms]
+
         Args:
             hts: string -> HypothesisTracker result of a
             TactusHypothesisTracker
         '''
         self.hts = hts
         self.time = {}
-        self.onset_times = hts.values()[0].onset_times
+        self.onset_times = sorted(hts.values()[0].onset_times)
 
         assert all([np.array_equal(self.onset_times, ht.onset_times)
                     for ht in hts.values()])
@@ -33,10 +37,13 @@ class OvertimeTracking:
                 hts_at_time.append(HypothesisAtTime(ht, onset_idx, corr, conf))
                 self.time[onset_time] = hts_at_time
 
-    def hipothesis_by_time(self):
+    def hypothesis_by_time(self):
         'Returns the list of HTS sorted by time'
-        times = sorted(self.time.keys())
-        return ((time, self.time[time]) for time in times)
+        return ((time, self.time[time]) for time in self.onset_times[1:])
+
+    def hypothesis_sorted_by_conf(self):
+        'Returns the list of HTS sorted by time and then by confidence'
+        return ((time, self.time[time]) for time in self.onset_times[1:])
 
 
 class HypothesisAtTime:
