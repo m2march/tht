@@ -29,7 +29,6 @@ def all_history_eval(ht, ongoing_play):
             (conf_sum / len(ongoing_play.discovered_play())))
 
 
-
 class OnsetRestrictedEval:
     '''
     Function class for evaluating a hypothesis on a restricted set of the onsets
@@ -48,10 +47,10 @@ class OnsetRestrictedEval:
         self.prev = prev_onsets_allowed
 
     def __call__(self, ht, ongoing_play):
-        starting_idx = ongoing_play.discovered_index - self.prev
+        starting_idx = max(ongoing_play.discovered_index - self.prev, 0)
         onsets = ongoing_play.discovered_play()[starting_idx:]
 
         proj = ht.proj_in_range(onsets[0], onsets[-1])
         conf_sum = sum(conf(proj, onsets, ht.d))
         return ((conf_sum / len(proj)) *
-                (conf_sum / len(ongoing_play.discovered_play())))
+                (conf_sum / len(onsets)))
