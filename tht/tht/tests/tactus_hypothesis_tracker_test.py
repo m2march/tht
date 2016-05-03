@@ -1,6 +1,6 @@
 import unittest
-import tactus_hypothesis_tracker
 import collections
+from tht.tht import tactus_hypothesis_tracker
 
 class TrimSimHypothesisTest(unittest.TestCase):
 

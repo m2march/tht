@@ -1,7 +1,7 @@
 import unittest
-import utils
-
 import mock
+
+from tht.tht import utils
 
 class RealProjTest(unittest.TestCase):
 
