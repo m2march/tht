@@ -1,5 +1,5 @@
 import pytest
-import adict
+import addict
 from tht.tht import tracking_overtime
 
 @pytest.fixture
@@ -20,7 +20,7 @@ def basic_hts_mock(mocker):
     h2.onset_times = onset_times
 
     hts = {'h1': h1, 'h2': h2}
-    return adict.adict({
+    return addict.Dict({
         'hts': hts,
         'h1': h1,
         'h2': h2,

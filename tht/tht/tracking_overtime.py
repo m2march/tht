@@ -56,3 +56,6 @@ class HypothesisAtTime:
         self.corr = corr
         self.ht_value = corr.new_hypothesis()
         self.conf = conf
+
+    def __repr__(self):
+        return '%s (c:%d)' % (self.hts, self.conf)

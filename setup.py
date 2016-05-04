@@ -8,9 +8,11 @@ setup(name='tht',
       author='Martin "March" Miguel',
       author_email='m2.march@gmail.com',
       packages=['tht'],
-      requires=[
+      install_requires=[
+          'addict',
+          'pytest-mock',
           'numpy',
           'more_itertools',
-          'py.test'
+          'pytest'
       ]
       )
