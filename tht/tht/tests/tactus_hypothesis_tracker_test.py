@@ -2,6 +2,7 @@ import unittest
 import collections
 from tht.tht import tactus_hypothesis_tracker
 
+
 class TrimSimHypothesisTest(unittest.TestCase):
 
     def setUp(self):
@@ -39,4 +40,4 @@ class TrimSimHypothesisTest(unittest.TestCase):
         k_best, other = tht._split_k_best_hypotheses(hts)
         self.assertEqual(k_best, [hts[0], hts[3], hts[6], hts[8], hts[10]])
         self.assertEqual(other, [hts[1], hts[2], hts[4],
-                                  hts[5], hts[7], hts[9]])
+                                 hts[5], hts[7], hts[9]])

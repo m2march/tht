@@ -2,6 +2,7 @@ import pytest
 import addict
 from tht.tht import tracking_overtime
 
+
 @pytest.fixture
 def basic_hts_mock(mocker):
     '''A mock tht result with two HypothesisTracker'''
@@ -13,11 +14,13 @@ def basic_hts_mock(mocker):
     h1.confs = [(1, 1), (2, 1), (3, 4)]
     h1.corr = [(1, m.MagicMock()), (2, m.MagicMock()), (3, m.MagicMock())]
     h1.onset_times = onset_times
+    h1.__repr__ = m.Mock(return_value='h1')
 
     h2 = m.MagicMock()
     h2.confs = [(2, 2), (3, 3)]
     h2.corr = [(2, m.MagicMock()), (3, m.MagicMock())]
     h2.onset_times = onset_times
+    h2.__repr__ = m.Mock(return_value='h2')
 
     hts = {'h1': h1, 'h2': h2}
     return addict.Dict({
