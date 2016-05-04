@@ -9,7 +9,6 @@ setup(name='tht',
       author_email='m2.march@gmail.com',
       packages=['tht'],
       requires=[
-          'python-midi',
           'numpy',
           'more_itertools',
           'py.test'
