@@ -43,7 +43,8 @@ class OvertimeTracking:
 
     def hypothesis_sorted_by_conf(self):
         'Returns the list of HTS sorted by time and then by confidence'
-        return ((time, self.time[time]) for time in self.onset_times[1:])
+        for time, hats in self.hypothesis_by_time():
+            yield (time, sorted(hats, key=lambda hat: hat.conf, reverse=True))
 
 
 class HypothesisAtTime:
@@ -58,4 +59,4 @@ class HypothesisAtTime:
         self.conf = conf
 
     def __repr__(self):
-        return '%s (c:%d)' % (self.hts, self.conf)
+        return '%s (c:%.2f)' % (self.hts, self.conf)
