@@ -47,7 +47,7 @@ class OnsetRestrictedEval:
         self.prev = prev_onsets_allowed
 
     def __call__(self, ht, ongoing_play):
-        starting_idx = max(ongoing_play.discovered_index - self.prev, 0)
+        starting_idx = max(ongoing_play.up_to_discovered_index - self.prev, 0)
         onsets = ongoing_play.discovered_play()[starting_idx:]
 
         proj = ht.proj_in_range(onsets[0], onsets[-1])

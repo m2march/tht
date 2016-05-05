@@ -79,6 +79,7 @@ class HypothesisFromIndex(Hypothesis):
         end_offset = onset_times[end_idx]
         Hypothesis.__init__(self, start_offset, end_offset - start_offset)
         self._name = '%d-%d' % (start_idx, end_idx)
+        self.onset_indexes = (start_idx, end_idx)
 
     @property
     def name(self):

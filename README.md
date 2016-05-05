@@ -25,6 +25,8 @@ script:
 * [numpy](http://www.numpy.org/)
 * [more_itertools](https://pypi.python.org/pypi/more-itertools)
 * [py.test](https://pytest.org)
+* [pytest-mock](https://pypi.python.org/pypi/pytest-mock)
+* [addict](https://github.com/mewwts/addict)
 
 And this dependency that need to be downloaded independently:
 

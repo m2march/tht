@@ -123,7 +123,7 @@ class TactusHypothesisTracker():
 
     def _generate_new_hypothesis(self, ongoing_play):
         "Generates new hypothesis trackers given discovered onset in playback."
-        end_index = ongoing_play.discovered_index - 1
+        end_index = ongoing_play.discovered_index
         for k in xrange(end_index):
             delta = (ongoing_play.onset_times[end_index] -
                      ongoing_play.onset_times[k])

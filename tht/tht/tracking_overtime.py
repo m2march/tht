@@ -32,18 +32,18 @@ class OvertimeTracking:
             for idx in xrange(len(ht.corr)):
                 onset_idx, corr = ht.corr[idx]
                 conf = ht.confs[idx][1]
-                onset_time = self.onset_times[onset_idx - 1]
+                onset_time = self.onset_times[onset_idx]
                 hts_at_time = self.time.get(onset_time, [])
                 hts_at_time.append(HypothesisAtTime(ht, onset_idx, corr, conf))
                 self.time[onset_time] = hts_at_time
 
     def hypothesis_by_time(self):
         'Returns the list of HTS sorted by time'
-        return ((time, self.time[time]) for time in self.onset_times[1:])
+        return ((time, self.time[time]) for time in self.onset_times)
 
     def hypothesis_sorted_by_conf(self):
         'Returns the list of HTS sorted by time and then by confidence'
-        return ((time, self.time[time]) for time in self.onset_times[1:])
+        return ((time, self.time[time]) for time in self.onset_times)
 
 
 class HypothesisAtTime:
