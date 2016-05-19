@@ -6,10 +6,9 @@ Usage: tht.py midi_file ARGS
 import gflags
 import sys
 
-import midi_lib as midi
-
 from sys import argv
-from tactus import tactus_hypothesis_tracker
+from tht.tht import tactus_hypothesis_tracker
+from tht import midi
 
 FLAGS = gflags.FLAGS
 
@@ -23,7 +22,7 @@ def main():
         print 'ht beta %f %f' % tracker.beta
         for n, corr in tracker.corr:
             print 'ht corr %d %f %f' % (n, corr.n_rho, corr.n_delta)
-        for n, conf in tracker.conf:
+        for n, conf in tracker.confs:
             print 'ht conf %d %f' % (n, conf)
 
 
