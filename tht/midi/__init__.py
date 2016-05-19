@@ -9,8 +9,9 @@ import collections as c
 class Note():
     'Represents a note in a midi playback.'
 
-    def __init__(self, tick, pitch, velocity, channel,
+    def __init__(self, prev, tick, pitch, velocity, channel,
                  duration, bpm, resolution):
+        self.prev = prev
         self.tick = tick
         self.pitch = pitch
         self.velocity = velocity
@@ -24,7 +25,9 @@ class Note():
 
     @property
     def ms(self):
-        return self.tick * (60000.0 / self.bpm / self.resolution)
+        ms_per_tick = (60000.0 / self.bpm / self.resolution)
+        delta = (self.tick - self.prev.tick) * ms_per_tick
+        return self.prev.ms + delta 
 
     @property
     def duration_ms(self):
@@ -42,7 +45,27 @@ class CollapsedNote(Note):
         self.bpm = note.bpm
         self.resolution = note.resolution
         self.duration = note.duration
+        self.prev = note.prev
         self.count = count
+
+
+class KickoffNote(Note):
+    'A null note representing the beginning of the passage'
+
+    def __init__(self):
+        pass
+
+    @property
+    def tick(self):
+        return 0
+
+    @property
+    def prev(self):
+        return self
+
+    @property
+    def ms(self):
+        return 0
 
 
 class MidiPlayback():
@@ -55,25 +78,30 @@ class MidiPlayback():
 
     def __init__(self, midi_file_name):
         pattern = midi.read_midifile(midi_file_name)
-        assert len([e for t in pattern for e in t
-                    if isinstance(e, midi.SetTempoEvent)]) == 1, \
-            'More than one tempo event found in: %s' % midi_file_name
         assert len(set([e.channel for t in pattern for e in t
                         if isinstance(e, midi.NoteEvent)])) == 1, \
             'More than one channel found in: %s' % midi_file_name
 
         def _process_offevent(on_notes, offset):
             onset = on_notes[(e.pitch, e.channel)].popleft()
+            prev = KickoffNote() if not self.notes else self.notes[-1]
             self.notes.append(
-                Note(tick=onset.tick, pitch=onset.pitch,
+                Note(prev=prev, 
+                     tick=onset.tick, pitch=onset.pitch,
                      velocity=onset.velocity, channel=onset.channel,
                      bpm=self.bpm, resolution=self.resolution,
                      duration=offset.tick - onset.tick))
+        
+        def _update_bpm(tempo_event):
+            self.bpm = tempo_event.bpm
 
         pattern.make_ticks_abs()
         self.resolution = pattern.resolution
-        self.bpm = [e for t in pattern for e in t
-                    if isinstance(e, midi.SetTempoEvent)][0].bpm
+        bpm_event = [e for t in pattern for e in t
+                     if isinstance(e, midi.SetTempoEvent)][0]
+        assert bpm_event.tick == 0
+
+        self.bpm = bpm_event.bpm
 
         self.notes = []
         on_notes = dict()
@@ -87,6 +115,8 @@ class MidiPlayback():
                     on_notes[(e.pitch, e.channel)].append(e)
                 elif isinstance(e, midi.NoteOffEvent):
                     _process_offevent(on_notes, e)
+                elif isinstance(e, midi.SetTempoEvent):
+                    _update_bpm(e)
         self.notes.sort()
 
     def collapse_onset_times(self):
