@@ -39,7 +39,8 @@ class OvertimeTracking:
 
     def hypothesis_by_time(self):
         'Returns the list of HTS sorted by time'
-        return ((time, self.time[time]) for time in self.onset_times[1:])
+        return ((time, self.time[time]) for time in self.onset_times[1:]
+                if time in self.time) # TODO(march): verify that check is necessary
 
     def hypothesis_sorted_by_conf(self):
         'Returns the list of HTS sorted by time and then by confidence'
