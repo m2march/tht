@@ -2,3 +2,4 @@
 .ropeproject
 tht.egg-info
 **/.cache
+build
