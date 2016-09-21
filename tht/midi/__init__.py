@@ -20,14 +20,12 @@ class Note():
         self.resolution = resolution
         self.duration = duration
 
-    def __cmp__(self, other):
-        return self.tick - other.tick or self.duration - other.duration
-
-    @property
-    def ms(self):
         ms_per_tick = (60000.0 / self.bpm / self.resolution)
         delta = (self.tick - self.prev.tick) * ms_per_tick
-        return self.prev.ms + delta 
+        self.ms = self.prev.ms + delta
+
+    def __cmp__(self, other):
+        return self.tick - other.tick or self.duration - other.duration
 
     @property
     def duration_ms(self):
@@ -86,12 +84,12 @@ class MidiPlayback():
             onset = on_notes[(e.pitch, e.channel)].popleft()
             prev = KickoffNote() if not self.notes else self.notes[-1]
             self.notes.append(
-                Note(prev=prev, 
+                Note(prev=prev,
                      tick=onset.tick, pitch=onset.pitch,
                      velocity=onset.velocity, channel=onset.channel,
                      bpm=self.bpm, resolution=self.resolution,
                      duration=offset.tick - onset.tick))
-        
+
         def _update_bpm(tempo_event):
             self.bpm = tempo_event.bpm
 
