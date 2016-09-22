@@ -46,6 +46,10 @@ class CollapsedNote(Note):
         self.prev = note.prev
         self.count = count
 
+        ms_per_tick = (60000.0 / self.bpm / self.resolution)
+        delta = (self.tick - self.prev.tick) * ms_per_tick
+        self.ms = self.prev.ms + delta
+
 
 class KickoffNote(Note):
     'A null note representing the beginning of the passage'
