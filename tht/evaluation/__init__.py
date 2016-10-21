@@ -53,5 +53,5 @@ def min_proj_dist(h, onset):
     return min(abs(dist), abs(dist - h.d))
 
 
-def rel_min_proj_dist(h, onset):
+def min_rel_proj_dist(h, onset):
     return min_proj_dist(h, onset) / float(h.d)
