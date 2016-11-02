@@ -32,7 +32,7 @@ def min_proj_k(h, onset):
         h: class with .r and .d methods for rho and delta
         onset: onset in ms
     '''
-    offset = 1 if (onset - h.r) % h.d > h.d / 2 else 0
+    offset = 1 if (onset - h.r) % h.d > h.d / 2.0 else 0
     return ((onset - h.r) // h.d) + offset
 
 
