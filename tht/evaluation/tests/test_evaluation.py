@@ -3,7 +3,7 @@
 import numpy as np
 
 from tht.evaluation import min_proj_k, min_proj
-from tht.evaluation import min_proj_dist
+from tht.evaluation import min_proj_dist, min_rel_proj_dist
 
 np.random.seed(5301)
 
@@ -70,5 +70,16 @@ class TestMinProjDist:
             for onset in self.random_onset_sequence:
                 proj_dist = abs(onset - min_proj(h, onset))
                 assert min_proj(h, onset) == h.r + min_proj_k(h, onset) * h.d
-                assert (min_proj_dist(h, onset) - proj_dist) < 0.00000001
+                assert (min_proj_dist(h, onset) - proj_dist) < 0.00001
                 assert min_proj_dist(h, onset) <= h.d / 2.0
+                assert ((min_proj_dist(h, onset) / (float(h.d))) -
+                        min_rel_proj_dist(h, onset)) <= 0.0000001
+
+    def test_rho_affects_distance(self):
+        onset = 1
+        rs = np.linspace(0, 1, 20)
+        hs = [SimpleHypothesis(x, 1) for x in rs]
+        expected_distances = np.concatenate(([0], rs[1:rs.size/2],
+                                             1 - rs[rs.size/2:]))
+        result_distances = [min_proj_dist(h, onset) for h in hs]
+        assert (expected_distances - result_distances < 0.0001).all()
