@@ -7,8 +7,8 @@ import gflags
 import sys
 
 from sys import argv
-from tht.tht import tactus_hypothesis_tracker
-from tht import midi
+from m2.tht import tactus_hypothesis_tracker
+from m2 import midi
 
 FLAGS = gflags.FLAGS
 

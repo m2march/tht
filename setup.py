@@ -7,7 +7,7 @@ setup(name='tht',
       description='Tactus Hypothesis Tracking Module',
       author='Martin "March" Miguel',
       author_email='m2.march@gmail.com',
-      packages=['tht', 'tht.midi'],
+      packages=['m2.tht'],
       install_requires=[
           'addict',
           'pytest-mock',

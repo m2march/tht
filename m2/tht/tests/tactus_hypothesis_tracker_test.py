@@ -2,8 +2,8 @@ import unittest
 import pytest
 import collections
 
-from tht.tht import tactus_hypothesis_tracker
-from tht.tht import correction
+from m2.tht import tactus_hypothesis_tracker
+from m2.tht import correction
 
 
 class TrimSimHypothesisTest(unittest.TestCase):

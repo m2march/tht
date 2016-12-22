@@ -1,4 +1,4 @@
-from tht.tht import confidence, hypothesis, playback
+from m2.tht import confidence, hypothesis, playback
 import numpy as np
 
 
