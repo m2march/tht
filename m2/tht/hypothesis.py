@@ -32,8 +32,7 @@ class Hypothesis(object):
         return 60000.0 / self.d
 
     def proj_with_x_in_range(self, min, max):
-        min_x = int(math.ceil((min - self.d / 2.0 - self.r) / self.d))
-        max_x = int(math.floor((max + self.d / 2.0 - self.r) / self.d))
+        min_x, max_x = self.proj_x_range(min, max)
         return ((x, self.r + self.d * x) for x in xrange(min_x, max_x+1))
 
     def proj_with_x(self, play):
@@ -44,6 +43,11 @@ class Hypothesis(object):
 
     def proj(self, play):
         return np.array([v[1] for v in self.proj_with_x(play)])
+
+    def proj_x_range(self, min, max):
+        min_x = int(math.ceil((min - self.d / 2.0 - self.r) / self.d))
+        max_x = int(math.floor((max + self.d / 2.0 - self.r) / self.d))
+        return min_x, max_x
 
     def __getitem__(self, key):
         if key == 0:
