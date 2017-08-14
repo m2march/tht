@@ -1,6 +1,8 @@
 '''This module contains a class with methods to perform analysis of the tactus
 phase.'''
 
+import tactus_hypothesis_tracker
+
 
 class TactusCaseAnalyzer:
 
@@ -111,3 +113,47 @@ def top_hypothesis(hts, onset_times_count):
                 continue
             yield (idx, m[0])
     return list(_top_hypothesis_iter())
+
+
+def produce_beats_information(onset_times, top_hts):
+    '''
+    Runs through trackers and onset times, generating beats by projecting each
+    top hypothesis correction at that onset time on the interval between said
+    onset time and the next one.
+
+    Args:
+        onset_times :: [ms]
+        top_hts :: [(onset_idx, HypothesisTracker)]
+
+    Returns:
+        :: [ms]
+    '''
+    top_onset_idxs = [onset_idx for onset_idx, _ in top_hts]
+    onset_idxs = [0] + top_onset_idxs[1:] + [top_onset_idxs[-1]]
+    onset_limits_idx = [(onset_idxs[i], onset_idxs[i+1])
+                        for i in xrange(0, len(onset_idxs) - 1)]
+    onset_limits = [(onset_times[l], onset_times[r])
+                    for l, r in onset_limits_idx]
+    assert len(onset_limits) == len(top_hts)
+
+    ret = []
+    for idx in xrange(len(onset_limits)):
+        onset_idx, top_ht = top_hts[idx]
+        left_limit, right_limit = onset_limits[idx]
+        iht = dict(top_ht.corr)[onset_idx].new_hypothesis()
+        beats = iht.proj_in_range(left_limit, right_limit)[:-1]
+        for beat in beats:
+            ret.append(beat)
+    return ret
+        
+
+def track_beats(onset_times, tracker=tactus_hypothesis_tracker.default_tht()):
+    '''Generates tracked beats from onset_times by projecting to hypothesis
+    during tracking.'''
+    hts = tracker(onset_times)
+
+    top_hts = top_hypothesis(hts, len(onset_times))
+
+    beats = produce_beats_information(onset_times, top_hts)
+
+    return beats

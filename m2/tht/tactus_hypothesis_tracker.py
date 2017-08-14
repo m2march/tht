@@ -173,6 +173,11 @@ class TactusHypothesisTracker():
         return best_k_hts, other_hts
 
 
-def default_tht():
-    'Returns a TactusHypothesisTracker with the default configuration'
-    return TactusHypothesisTracker(**defaults.config)
+def default_tht(**kwargs):
+    '''Returns a TactusHypothesisTracker with the default configuration.
+
+    Default config may be overriden witih kwargs. See defaults.config
+    '''
+    config = defaults.config.copy()
+    config.update(kwargs)
+    return TactusHypothesisTracker(**config)
