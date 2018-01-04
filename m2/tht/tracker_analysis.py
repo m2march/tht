@@ -2,6 +2,7 @@
 phase.'''
 
 import tactus_hypothesis_tracker
+import numpy as np
 
 
 class TactusCaseAnalyzer:
@@ -51,12 +52,12 @@ def hypothesis_ranks_overtime(hypothesis_trackers, playback_length):
     for i in xrange(playback_length):  # Filtering confidence values
         sort_key = sorting_key_gen(i)
         enhanced_trackers = [(item[0], sort_key(item))
-                             for item in [(t, dict(t.conf)) for t
+                             for item in [(t, dict(t.confs)) for t
                                           in hypothesis_trackers.values()]
                              if sort_key(item)]
         sorted_trackers = sorted(enhanced_trackers, key=lambda x: x[1],
                                  reverse=True)
-        results.append(sorted_trackers)
+        results.append((i, sorted_trackers))
 
     return results
 
@@ -141,8 +142,8 @@ def produce_beats_information(onset_times, top_hts):
         onset_idx, top_ht = top_hts[idx]
         left_limit, right_limit = onset_limits[idx]
         iht = dict(top_ht.corr)[onset_idx].new_hypothesis()
-        beats = iht.proj_in_range(left_limit, right_limit)[:-1]
-        for beat in beats:
+        beats = np.array(iht.proj_in_range(left_limit, right_limit))
+        for beat in beats[1:]:
             ret.append(beat)
     return ret
         

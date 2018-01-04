@@ -98,9 +98,14 @@ class LinRegsOverSmoothedErrorCorrectionWithPeak(HypothesisCorrectionMethod):
 
 class MultLinRegsOSEC(LinearRegressOverSmoothedErrorCorrection):
 
+    def __init__(self, mult=1.0, decay=0.02, by=5):
+        self.by = by
+
+        LinearRegressOverSmoothedErrorCorrection.__init__(self, mult, decay)
+
     def __call__(self, ht, ongoing_play):
         nh = ht
-        for i in xrange(5):
+        for i in xrange(self.by):
             nc = super(self.__class__, self).__call__(nh, ongoing_play)
             nh = nc.new_hypothesis()
         return nc
@@ -109,7 +114,7 @@ lin_r_corr = LinearRegressOverSmoothedErrorCorrection()
 lin_r_corr_alt = LinearRegressOverSmoothedErrorCorrection(1, 0.001)
 lin_r_corr_max = LinRegsOverSmoothedErrorCorrectionWithPeak()
 lin_r_corr_max_descent = LinRegsOverSmoothedErrorCorrectionWithPeak(0.001)
-lin_r_corr_by_5 = MultLinRegsOSEC()
+lin_r_corr_opt_by_5 = MultLinRegsOSEC(2, 0.0001, 5)
 lin_r_corr_opt = LinearRegressOverSmoothedErrorCorrection(2, .0001)
 
 
