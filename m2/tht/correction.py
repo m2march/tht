@@ -6,12 +6,13 @@ import math
 
 import numpy as np
 import hypothesis as hs
+import confidence
 
 from scipy import stats
 
 
 def error_conf(error, multiplicator, decay, delta):
-    return multiplicator * error * (decay ** (np.abs(error) / float(delta)))
+    return multiplicator * error * confidence.gaussian_weight(decay * error / delta)
 
 
 class HypothesisCorrection():
@@ -69,7 +70,11 @@ class LinearRegressOverSmoothedErrorCorrection(HypothesisCorrectionMethod):
 
     def __call__(self, ht, ongoing_play):
         p_w_x = ht.proj_with_x(ongoing_play)
-        xs, p = zip(*p_w_x)
+        try:
+            xs, p = zip(*p_w_x)
+        except ValueError:
+            print ht, ongoing_play.onset_times
+
         r_p = utils.real_proj(p, ongoing_play)
 
         err = r_p - p

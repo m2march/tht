@@ -16,8 +16,12 @@ def conf(proj, onsets, delta):
     r_p = utils.project(proj, onsets)
     errors = (proj - r_p) 
     relative_errors = errors / float(delta)
-    ret = np.exp(-(relative_errors ** 2))
+    ret = gaussian_weight(relative_errors)
     return ret
+
+
+def gaussian_weight(distances):
+    return np.exp(-(distances ** 2))
 
 
 def all_history_eval(ht, ongoing_play):
