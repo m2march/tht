@@ -8,16 +8,16 @@ import numpy as np
 import m2.tht.playback as play
 
 
-def conf(proj, onsets, delta):
+def conf(xs, proj, onsets, delta, mult, decay):
     '''Confidence of a set of tactus projections over a playback.
 
     Complexity: O(|proj|) \in O(|ongoing_play|)
     '''
-    r_p = utils.project(proj, onsets)
-    errors = (proj - r_p) 
-    relative_errors = errors / float(delta)
+    xs, r_p, p = zip(*utils.project(xs, proj, onsets))
+    errors = np.array(p) - np.array(r_p) 
+    relative_errors = decay * errors / float(delta)
     ret = gaussian_weight(relative_errors)
-    return ret
+    return mult * ret
 
 
 def gaussian_weight(distances):
@@ -31,8 +31,8 @@ def all_history_eval(ht, ongoing_play):
 
     Complexity: O(|ongoing_play|)
     '''
-    proj = ht.proj(ongoing_play)
-    conf_sum = sum(conf(proj, ongoing_play.discovered_play(), ht.d))
+    xs, proj = zip(*ht.proj_with_x(ongoing_play))
+    conf_sum = sum(conf(xs, proj, ongoing_play.discovered_play(), ht.d))
     return ((conf_sum / len(proj)) *
             (conf_sum / len(ongoing_play.discovered_play())))
 
@@ -56,20 +56,25 @@ class EvalAssembler:
         hypothesis_tracker, ongoing_play, confidence_score -> confidence_score
     '''
 
-    def __init__(self, conf_modifiers, end_modifiers):
+    def __init__(self, conf_modifiers, end_modifiers, mult=1, decay=5):
         self.conf_modifiers = conf_modifiers 
         self.end_modifiers = end_modifiers
+        self.mult = mult
+        self.decay = decay
 
     def __call__(self, ht, ongoing_play):
-        proj = ht.proj(ongoing_play)
+        try:
+            xs, proj = zip(*ht.proj_with_x(ongoing_play))
+        except ValueError as ve:
+            print ht, ht.r, ht.d
+            raise ve
         discovered_onsets = ongoing_play.discovered_play()
-        confs = conf(proj, discovered_onsets, ht.d)
+        confs = conf(xs, proj, discovered_onsets, ht.d, self.mult, self.decay)
         for cm in self.conf_modifiers:
             proj, discovered_onsets, confs = cm(ht, proj, discovered_onsets,
                                                 confs)
 
         conf_sum = sum(confs)
-        print ht, conf_sum, len(proj), len(discovered_onsets)
         try:
             if len(proj) == 0:
                 return 0
@@ -136,8 +141,10 @@ class TimeRestrictedConfMod:
     of the playback.
     '''
 
-    def __init__(self, prev_ms_allowed):
+    def __init__(self, prev_ms_allowed, mult=1, decay=5):
         self.prev = prev_ms_allowed
+        self.mult = mult
+        self.decay = decay
 
     def __call__(self, ht, proj, discovered_onsets, confs):
         onsets_idx = 0
@@ -147,8 +154,9 @@ class TimeRestrictedConfMod:
 
         n_discovered_onsets = discovered_onsets[onsets_idx:]
 
-        n_proj = ht.proj(play.Playback(n_discovered_onsets))
-        n_confs = conf(proj, n_discovered_onsets, ht.d)
+        xs, n_proj = zip(*ht.proj_with_x(play.Playback(n_discovered_onsets)))
+        n_confs = conf(xs, n_proj, n_discovered_onsets, ht.d, self.mult,
+                       self.decay) 
 
         return (n_proj, n_discovered_onsets, n_confs)
 
@@ -175,11 +183,11 @@ class DeltaPriorEndMod:
         return self._delta_prior(ht.d) * end_conf
 
 
-conf_all = EvalAssembler([], [])
-conf_prev = EvalAssembler([TimeRestrictedConfMod(5000)], [])
+conf_all = EvalAssembler([], [], 1, 5)
+conf_prev = EvalAssembler([TimeRestrictedConfMod(1000, 1, 5)], [])
 conf_all_w_prior = EvalAssembler([], [DeltaPriorEndMod()])
 conf_prev_w_prior = EvalAssembler([TimeRestrictedConfMod(5000)],
                                   [DeltaPriorEndMod()])
 conf_accents_prior = EvalAssembler([PovelAccentConfMod(4)], [DeltaPriorEndMod()])
 conf_accents_prev_prior = EvalAssembler(
-    [PovelAccentConfMod(4), TimeRestrictedConfMod(5000)], [DeltaPriorEndMod()])
+    [PovelAccentConfMod(4), TimeRestrictedConfMod(1000)], [DeltaPriorEndMod()])

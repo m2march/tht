@@ -113,8 +113,14 @@ class TactusHypothesisTracker():
 
             kept_hs, trimmed_hs = self._trim_similar_hypotheses(
                 hypothesis_trackers, ongoing_play)
+            self.logger.debug('Trimmed by similarity (%d): %s',
+                              ongoing_play.discovered_index,
+                              str([str(h) for h in trimmed_hs]))
 
             k_best_hs, other_hs = self._split_k_best_hypotheses(kept_hs)
+            self.logger.debug('Trimmed by score (%d): %s',
+                              ongoing_play.discovered_index,
+                              str([str(h) for h in other_hs]))
             hypothesis_trackers = k_best_hs
             self.logger.debug('End of step. %d trackers remaining',
                               len(hypothesis_trackers))
