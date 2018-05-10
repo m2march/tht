@@ -8,7 +8,11 @@ import numpy as np
 import m2.tht.playback as play
 
 
-def conf(xs, proj, onsets, delta, mult, decay):
+def gaussian_weight(distances):
+    return np.exp(-(distances ** 2))
+
+
+def conf(xs, proj, onsets, delta, mult, decay, weight_func=gaussian_weight):
     '''Confidence of a set of tactus projections over a playback.
 
     Complexity: O(|proj|) \in O(|ongoing_play|)
@@ -16,12 +20,8 @@ def conf(xs, proj, onsets, delta, mult, decay):
     xs, r_p, p = zip(*utils.project(xs, proj, onsets))
     errors = np.array(p) - np.array(r_p) 
     relative_errors = decay * errors / float(delta)
-    ret = gaussian_weight(relative_errors)
+    ret = weight_func(relative_errors)
     return mult * ret
-
-
-def gaussian_weight(distances):
-    return np.exp(-(distances ** 2))
 
 
 def all_history_eval(ht, ongoing_play):
@@ -32,7 +32,8 @@ def all_history_eval(ht, ongoing_play):
     Complexity: O(|ongoing_play|)
     '''
     xs, proj = zip(*ht.proj_with_x(ongoing_play))
-    conf_sum = sum(conf(xs, proj, ongoing_play.discovered_play(), ht.d))
+    conf_sum = sum(conf(xs, proj, ongoing_play.discovered_play(), 
+                        ht.d, 1, 0.01, lambda x: abs(x)))
     return ((conf_sum / len(proj)) *
             (conf_sum / len(ongoing_play.discovered_play())))
 
