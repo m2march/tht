@@ -1,7 +1,7 @@
 '''This module contains a class with methods to perform analysis of the tactus
 phase.'''
 
-import tactus_hypothesis_tracker
+from . import tactus_hypothesis_tracker
 import numpy as np
 
 
@@ -13,7 +13,7 @@ class TactusCaseAnalyzer:
     def top_hypothesis(self, case):
         'Given a case, returns a list of top tactus hypothesis'
         def _sorting_key_gen():
-            for i in xrange(3, len(case['onset_times'])):
+            for i in range(3, len(case['onset_times'])):
                 def key(item):  # item :: (ht_name, conf_dict)
                     return item[1][i] if i in item[1] else 0.0
                 yield key
@@ -21,7 +21,7 @@ class TactusCaseAnalyzer:
         def _top_hypothesis_iter():
             hts = case['hypothesis_trackers']
             hts_iterators = [(ht, dict(ht.confs))
-                             for ht in hts.values()]
+                             for ht in list(hts.values())]
             for key in _sorting_key_gen():
                 yield max(hts_iterators, key=key)[0]
         return list(_top_hypothesis_iter())
@@ -49,11 +49,11 @@ def hypothesis_ranks_overtime(hypothesis_trackers, playback_length):
                 as list
     """
     results = []
-    for i in xrange(playback_length):  # Filtering confidence values
+    for i in range(playback_length):  # Filtering confidence values
         sort_key = sorting_key_gen(i)
         enhanced_trackers = [(item[0], sort_key(item))
                              for item in [(t, dict(t.confs)) for t
-                                          in hypothesis_trackers.values()]
+                                          in list(hypothesis_trackers.values())]
                              if sort_key(item)]
         sorted_trackers = sorted(enhanced_trackers, key=lambda x: x[1],
                                  reverse=True)
@@ -84,12 +84,12 @@ def create_trackers_segments(hypothesis_ranks_overtime, trackers_to_show):
 
 
 def tracker_dump(tracker, stream):
-    print >> stream, 'ht name', tracker.name
-    print >> stream, 'ht beta %f %f' % tracker.beta
+    print('ht name', tracker.name, file=stream)
+    print('ht beta %f %f' % tracker.beta, file=stream)
     for n, corr in tracker.corr:
-        print >> stream, 'ht corr %d %f %f' % (n, corr.n_rho, corr.n_delta)
+        print('ht corr %d %f %f' % (n, corr.n_rho, corr.n_delta), file=stream)
     for n, conf in tracker.confs:
-        print >> stream, 'ht conf %d %f' % (n, conf)
+        print('ht conf %d %f' % (n, conf), file=stream)
 
 
 def top_hypothesis(hts, onset_times_count):
@@ -100,16 +100,17 @@ def top_hypothesis(hts, onset_times_count):
         :: [(onset_idx :: int, ht :: HypothesisTracker)]
     '''
     def _sorting_key_gen():
-        for i in xrange(3, onset_times_count):
+        for i in range(3, onset_times_count):
             def key(item):  # item :: (ht_name, conf_dict)
                 return item[1][i] if i in item[1] else None
             yield (i, key)
 
     def _top_hypothesis_iter():
         hts_iterators = [(ht, dict(ht.confs))
-                         for ht in hts.values()]
+                         for ht in list(hts.values())]
         for idx, key in _sorting_key_gen():
-            m = max(hts_iterators, key=key)
+            m = max([item for item in hts_iterators if key(item) is not None], 
+                    key=key)
             if key(m) is None:
                 continue
             yield (idx, m[0])
@@ -132,13 +133,13 @@ def produce_beats_information(onset_times, top_hts):
     top_onset_idxs = [onset_idx for onset_idx, _ in top_hts]
     onset_idxs = [0] + top_onset_idxs[1:] + [top_onset_idxs[-1]]
     onset_limits_idx = [(onset_idxs[i], onset_idxs[i+1])
-                        for i in xrange(0, len(onset_idxs) - 1)]
+                        for i in range(0, len(onset_idxs) - 1)]
     onset_limits = [(onset_times[l], onset_times[r])
                     for l, r in onset_limits_idx]
     assert len(onset_limits) == len(top_hts)
 
     ret = []
-    for idx in xrange(len(onset_limits)):
+    for idx in range(len(onset_limits)):
         onset_idx, top_ht = top_hts[idx]
         left_limit, right_limit = onset_limits[idx]
         iht = dict(top_ht.corr)[onset_idx].new_hypothesis()

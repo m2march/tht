@@ -1,15 +1,24 @@
 """Module containing functions to evaluate the confidence of a hypothesis
 over a ongoing playback."""
 
-import utils
+from . import utils
 import m2.povel1985
 import scipy.stats as st
 import numpy as np
 import m2.tht.playback as play
+from m2.tht import hypothesis
 
 
 def gaussian_weight(distances):
     return np.exp(-(distances ** 2))
+
+
+def conf_exp(xs, proj, onsets, delta):
+    _, r_p, p = zip(*utils.project(xs, proj, onsets))
+    errors = abs(np.array(p) - np.array(r_p))
+    relative_errors = errors / float(delta)
+    ret = 0.01 ** relative_errors
+    return ret
 
 
 def conf(xs, proj, onsets, delta, mult, decay, weight_func=gaussian_weight):
@@ -17,11 +26,24 @@ def conf(xs, proj, onsets, delta, mult, decay, weight_func=gaussian_weight):
 
     Complexity: O(|proj|) \in O(|ongoing_play|)
     '''
-    xs, r_p, p = zip(*utils.project(xs, proj, onsets))
+    xs, r_p, p = list(zip(*utils.project(xs, proj, onsets)))
     errors = np.array(p) - np.array(r_p) 
     relative_errors = decay * errors / float(delta)
     ret = weight_func(relative_errors)
     return mult * ret
+
+
+def all_history_eval_exp(ht, ongoing_play):
+    '''
+    Evaluates a hypothesis on an ongoing_play. It takes into consideration the
+    whole history of the playback. Uses exponential function for distance.
+
+    Complexity: O(|ongoing_play|)
+    '''
+    xs, proj = zip(*ht.proj_with_x(ongoing_play))
+    conf_sum = sum(conf_exp(xs, proj, ongoing_play.discovered_play(), ht.d))
+    return ((conf_sum / len(proj)) *
+            (conf_sum / len(ongoing_play.discovered_play())))
 
 
 def all_history_eval(ht, ongoing_play):
@@ -31,7 +53,7 @@ def all_history_eval(ht, ongoing_play):
 
     Complexity: O(|ongoing_play|)
     '''
-    xs, proj = zip(*ht.proj_with_x(ongoing_play))
+    xs, proj = list(zip(*ht.proj_with_x(ongoing_play)))
     conf_sum = sum(conf(xs, proj, ongoing_play.discovered_play(), 
                         ht.d, 1, 0.01, lambda x: abs(x)))
     return ((conf_sum / len(proj)) *
@@ -65,9 +87,9 @@ class EvalAssembler:
 
     def __call__(self, ht, ongoing_play):
         try:
-            xs, proj = zip(*ht.proj_with_x(ongoing_play))
+            xs, proj = list(zip(*ht.proj_with_x(ongoing_play)))
         except ValueError as ve:
-            print ht, ht.r, ht.d
+            print(ht, ht.r, ht.d)
             raise ve
         discovered_onsets = ongoing_play.discovered_play()
         confs = conf(xs, proj, discovered_onsets, ht.d, self.mult, self.decay)
@@ -88,10 +110,10 @@ class EvalAssembler:
 
             return end_conf
         except ZeroDivisionError:
-            print ('> Zero Division Error with ongoing_play: {} '
+            print(('> Zero Division Error with ongoing_play: {} '
                    '| ht = {} | proj = {}').format(
                        ongoing_play.discovered_play(),
-                       ht, proj)
+                       ht, proj))
 
 
 class PovelAccentConfMod:
@@ -155,7 +177,7 @@ class TimeRestrictedConfMod:
 
         n_discovered_onsets = discovered_onsets[onsets_idx:]
 
-        xs, n_proj = zip(*ht.proj_with_x(play.Playback(n_discovered_onsets)))
+        xs, n_proj = list(zip(*ht.proj_with_x(play.Playback(n_discovered_onsets))))
         n_confs = conf(xs, n_proj, n_discovered_onsets, ht.d, self.mult,
                        self.decay) 
 
@@ -184,6 +206,7 @@ class DeltaPriorEndMod:
         return self._delta_prior(ht.d) * end_conf
 
 
+conf_all_exp = all_history_eval_exp
 conf_all = EvalAssembler([], [], 1, 5)
 conf_prev = EvalAssembler([TimeRestrictedConfMod(1000, 1, 5)], [])
 conf_all_w_prior = EvalAssembler([], [DeltaPriorEndMod()])

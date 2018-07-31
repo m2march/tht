@@ -1,12 +1,12 @@
 """Module with correction functions thta given a hypothesis tracker and
 a ongoing playback return a HypothesisCorrection class."""
 
-import utils
+from . import utils
 import math
 
 import numpy as np
-import hypothesis as hs
-import confidence
+from . import hypothesis as hs
+from . import confidence
 
 from m2.tht import playback, hypothesis
 
@@ -25,12 +25,12 @@ def gauss_error_conf(error, multiplicator, decay, delta):
 def error_calc(ht, ongoing_play):
     p_w_x = ht.proj_with_x(ongoing_play)
     try:
-        xs, p = zip(*p_w_x)
+        xs, p = list(zip(*p_w_x))
     except ValueError:
-        print ht, ongoing_play.onset_times
+        print(ht, ongoing_play.onset_times)
 
     #xs, p, r_p = zip(*utils.centered_real_proj(xs, p, ongoing_play))
-    xs, p, r_p = zip(*utils.project(xs, p, ongoing_play.discovered_play())) 
+    xs, p, r_p = list(zip(*utils.project(xs, p, ongoing_play.discovered_play()))) 
 
     err = np.array(r_p) - np.array(p)
     return xs, err, p
@@ -185,7 +185,7 @@ class MultLinRegsOSEC(LinearRegressOverSmoothedErrorCorrection):
 
     def __call__(self, ht, ongoing_play):
         nh = ht
-        for i in xrange(self.by):
+        for i in range(self.by):
             nc = super(self.__class__, self).__call__(nh, ongoing_play)
             nh = nc.new_hypothesis()
         return nc

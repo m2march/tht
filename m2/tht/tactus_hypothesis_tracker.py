@@ -1,9 +1,9 @@
 """This module contains the TactusTrackersGenerator class that can be configured
 to generate complete hypothesis trackers for the playback of a case."""
 
-import playback
-import defaults
-import hypothesis
+from . import playback
+from . import defaults
+from . import hypothesis
 import collections
 import logging
 
@@ -130,7 +130,7 @@ class TactusHypothesisTracker():
     def _generate_new_hypothesis(self, ongoing_play):
         "Generates new hypothesis trackers given discovered onset in playback."
         end_index = ongoing_play.discovered_index
-        for k in xrange(end_index):
+        for k in range(end_index):
             delta = (ongoing_play.onset_times[end_index] -
                      ongoing_play.onset_times[k])
             if self.min_delta <= delta and delta <= self.max_delta:

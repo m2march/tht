@@ -33,7 +33,7 @@ class Hypothesis(object):
 
     def proj_with_x_in_range(self, min, max):
         min_x, max_x = self.proj_x_range(min, max)
-        return ((x, self.r + self.d * x) for x in xrange(min_x, max_x+1))
+        return ((x, self.r + self.d * x) for x in range(min_x, max_x+1))
 
     def proj_with_x(self, play):
         return self.proj_with_x_in_range(play.min, play.max)

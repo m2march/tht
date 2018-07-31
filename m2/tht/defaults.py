@@ -1,8 +1,8 @@
 '''Default configuration for THT'''
 
-import confidence
-import correction
-import similarity
+from . import confidence
+from . import correction
+from . import similarity
 
 eval_f = confidence.all_history_eval
 corr_f = correction.lin_r_corr_opt

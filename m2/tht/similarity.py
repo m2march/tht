@@ -1,8 +1,8 @@
 """Module containing functions to measure similarity between two hypothesis
 trackers with respect to a ongoing playback."""
 
-import confidence
-import playback
+from . import confidence
+from . import playback
 
 
 def proj_conf_sim(h, i, ongoing_play):
