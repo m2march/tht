@@ -1,12 +1,18 @@
 """This module contains the TactusTrackersGenerator class that can be configured
 to generate complete hypothesis trackers for the playback of a case."""
 
-from . import playback
-from . import defaults
-from . import hypothesis
+from m2.tht import playback
+from m2.tht import defaults
+from m2.tht import hypothesis
+from m2.tht.correction import HypothesisCorrection
 import collections
 import logging
+from typing import *
 
+Rho = NewType('Rho', float)
+Delta = NewType('Delta', float)
+OnsetIdx = NewType('OnsetIdx', int)
+Conf = NewType('Conf', float)
 
 class HypothesisTracker(hypothesis.HypothesisFromIndex):
     """Class that holds information of the hypothesis evolution.
@@ -30,6 +36,10 @@ class HypothesisTracker(hypothesis.HypothesisFromIndex):
     a correction function and to update the confence status with a
     confidence function.
     """
+    beta: Tuple[Rho, Delta]
+    oonset_times: List[float]
+    corr: List[Tuple[OnsetIdx, HypothesisCorrection]]
+    confs: List[Tuple[OnsetIdx, float]]
 
     def __init__(self, start_idx, end_idx, onset_times):
         super(self.__class__, self).__init__(start_idx, end_idx, onset_times)
