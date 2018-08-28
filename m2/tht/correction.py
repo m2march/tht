@@ -117,6 +117,43 @@ class LinearRegressOverSmoothedErrorCorrection(HypothesisCorrectionMethod):
                                     stderr=stderr)
 
 
+class WindowedCorrection(HypothesisCorrectionMethod):
+    '''
+    Correction function in which only part of the past of the percieved onsets
+    is taken into account for the correction.
+    '''
+
+    def __init__(self, mult, decay, window):
+        '''
+        Args:
+            mult: double multiplier of the error
+            decay: double multiplier of the error on the decay part
+            window: ms before last onsets to check for errors
+        '''
+        self.mult = mult
+        self.decay = decay
+        self.window = window
+
+    def __call__(self, ht, ongoing_play):
+        discovered_onsets = np.array(ongoing_play.discovered_play())
+        discovered_onsets = discovered_onsets[discovered_onsets >
+                                              discovered_onsets[-1] -
+                                              self.window]
+        sub_pl = playback.Playback(discovered_onsets)
+        xs, err, p = error_calc(ht, sub_pl)
+        conf = exp_error_conf(err, self.mult, self.decay, ht.d)
+
+        (delta_delta, delta_rho, r_value,
+         p_value, stderr) = stats.linregress(xs, conf)
+
+        return HypothesisCorrection(o_rho=ht.r, o_delta=ht.d,
+                                    n_rho=ht.r + delta_rho,
+                                    n_delta=ht.d + delta_delta,
+                                    r_value=r_value, p_value=p_value,
+                                    stderr=stderr)
+
+
+# TODO: Mergear los métodos de corrección
 class MovingWindowedSmoothCorrection(HypothesisCorrectionMethod):
     '''
     Correction function in which the new hypothesis is moved forward to
@@ -196,6 +233,7 @@ lin_r_corr_max = LinRegsOverSmoothedErrorCorrectionWithPeak()
 lin_r_corr_max_descent = LinRegsOverSmoothedErrorCorrectionWithPeak(0.001)
 lin_r_corr_opt_by_5 = MultLinRegsOSEC(2, 0.0001, 5)
 lin_r_corr_opt = LinearRegressOverSmoothedErrorCorrection(2, .0001)
+windowed_corr = WindowedCorrection(2, 0.0001, 6000)
 
 
 def no_corr(ht, ongoing_play):

@@ -46,6 +46,20 @@ def all_history_eval_exp(ht, ongoing_play):
             (conf_sum / len(ongoing_play.discovered_play())))
 
 
+class WindowedExpEval:
+    '''Confidence is evaluated with exp function over a window of time.'''
+
+    def __init__(self, window):
+        self.window = window
+
+    def __call__(self, ht, ongoing_play):
+        discovered_play = ongoing_play.discovered_play()
+        last = discovered_play[-1]
+        discovered_play_f = [o for o in discovered_play 
+                             if o > last - self.window]
+        return all_history_eval_exp(ht, play.Playback(discovered_play_f))
+
+
 def all_history_eval(ht, ongoing_play):
     '''
     Evaluates a hypothesis on an ongoing_play. It takes into consideration the
@@ -215,3 +229,5 @@ conf_prev_w_prior = EvalAssembler([TimeRestrictedConfMod(5000)],
 conf_accents_prior = EvalAssembler([PovelAccentConfMod(4)], [DeltaPriorEndMod()])
 conf_accents_prev_prior = EvalAssembler(
     [PovelAccentConfMod(4), TimeRestrictedConfMod(1000)], [DeltaPriorEndMod()])
+
+windowed_conf = WindowedExpEval(6000)

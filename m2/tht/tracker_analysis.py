@@ -109,11 +109,10 @@ def top_hypothesis(hts, onset_times_count):
         hts_iterators = [(ht, dict(ht.confs))
                          for ht in list(hts.values())]
         for idx, key in _sorting_key_gen():
-            m = max([item for item in hts_iterators if key(item) is not None], 
-                    key=key)
-            if key(m) is None:
-                continue
-            yield (idx, m[0])
+            f_list = [item for item in hts_iterators if key(item) is not None]
+            if len(f_list) == 0:
+               continue 
+            yield (idx, max(f_list, key=key)[0])
     return list(_top_hypothesis_iter())
 
 

@@ -20,16 +20,16 @@ class OvertimeTracking:
         '''
         self.hts = hts
         self.time = {}
-        self.onset_times = sorted(hts.values()[0].onset_times)
+        self.onset_times = sorted(list(hts.values())[0].onset_times)
 
         assert all([np.array_equal(self.onset_times, ht.onset_times)
-                    for ht in hts.values()])
+                    for ht in list(hts.values())])
 
         # Update time with one HAT per hypothesis at a given time
-        for name, ht in hts.items():
+        for name, ht in list(hts.items()):
             assert (([x[0] for x in ht.corr] == [x[0] for x in ht.confs]),
                     'hts corrections and conf does not have same onset indexes')
-            for idx in xrange(len(ht.corr)):
+            for idx in range(len(ht.corr)):
                 onset_idx, corr = ht.corr[idx]
                 conf = ht.confs[idx][1]
                 onset_time = self.onset_times[onset_idx]
