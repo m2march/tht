@@ -220,6 +220,16 @@ class DeltaPriorEndMod:
         return self._delta_prior(ht.d) * end_conf
 
 
+class WindowedExpEvalPrior:
+
+    def __init__(self, window):
+        self.window = window
+
+    def __call__(self, ht, ongoing_play):
+        win_score = WindowedExpEval(self.window)(ht, ongoing_play)
+        delta_score = DeltaPriorEndMod()(ht, ongoing_play, end_conf)
+        return delta_score
+
 conf_all_exp = all_history_eval_exp
 conf_all = EvalAssembler([], [], 1, 5)
 conf_prev = EvalAssembler([TimeRestrictedConfMod(1000, 1, 5)], [])
