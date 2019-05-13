@@ -208,7 +208,7 @@ class DeltaPriorEndMod:
     MAX_DELTA = 1500  # ms
     MIN_DELTA = 187  # ms
     DELTA_MU = 600.0  # ms
-    DELTA_SIGMA = 175.0  # ms
+    DELTA_SIGMA = 400 # 250.0  175 # ms
     delta_clip_a = (MIN_DELTA - DELTA_MU) / DELTA_SIGMA
     delta_clip_b = (MAX_DELTA - DELTA_MU) / DELTA_SIGMA
 
@@ -227,7 +227,7 @@ class WindowedExpEvalPrior:
 
     def __call__(self, ht, ongoing_play):
         win_score = WindowedExpEval(self.window)(ht, ongoing_play)
-        delta_score = DeltaPriorEndMod()(ht, ongoing_play, end_conf)
+        delta_score = DeltaPriorEndMod()(ht, ongoing_play, win_score)
         return delta_score
 
 conf_all_exp = all_history_eval_exp

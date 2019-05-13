@@ -1,9 +1,17 @@
 '''This module contains a class with methods to perform analysis of the tactus
 phase.'''
 
+from typing import Dict, List, Tuple
 from . import tactus_hypothesis_tracker
 import numpy as np
+from m2.tht.tactus_hypothesis_tracker import HypothesisTracker
+import m2.tht.defaults as tht_defaults
+from scipy.stats import spearmanr, pearsonr, norm
+import pandas as pd
 
+Delta = float
+Rho = float
+Conf = float
 
 class TactusCaseAnalyzer:
 
@@ -71,7 +79,7 @@ def create_trackers_segments(hypothesis_ranks_overtime, trackers_to_show):
                 trackers_segments[t] = []
             last_segment = None
             if (trackers_segments[t] and
-                trackers_segments[t][-1][0][-1] == idx - 1):
+                    trackers_segments[t][-1][0][-1] == idx - 1):
                 last_segment = trackers_segments[t][-1]
             if last_segment:
                 last_segment[0].append(idx)
@@ -111,7 +119,7 @@ def top_hypothesis(hts, onset_times_count):
         for idx, key in _sorting_key_gen():
             f_list = [item for item in hts_iterators if key(item) is not None]
             if len(f_list) == 0:
-               continue 
+               continue
             yield (idx, max(f_list, key=key)[0])
     return list(_top_hypothesis_iter())
 
@@ -146,7 +154,7 @@ def produce_beats_information(onset_times, top_hts):
         for beat in beats[1:]:
             ret.append(beat)
     return ret
-        
+
 
 def track_beats(onset_times, tracker=tactus_hypothesis_tracker.default_tht()):
     '''Generates tracked beats from onset_times by projecting to hypothesis
@@ -158,3 +166,102 @@ def track_beats(onset_times, tracker=tactus_hypothesis_tracker.default_tht()):
     beats = produce_beats_information(onset_times, top_hts)
 
     return beats
+
+
+def ht_grid(min_delta=tht_defaults.min_delta,
+            max_delta=tht_defaults.max_delta,
+            delta_sample_num=60, rho_sample_num=20):
+    '''
+    Delta and rho grid for distribution sampling.
+
+    Return:
+        delta_values: List
+        rho_values: List
+    '''
+    delta_values = np.linspace(tht_defaults.min_delta,
+                               tht_defaults.max_delta,
+                               num=delta_sample_num)
+    rho_values = np.linspace(0, 1, num=rho_sample_num)
+
+    return delta_values, rho_values
+
+
+def ht_weighted_distribution(points, delta_samples, rho_samples,
+                             delta_sigma=25, rho_sigma=0.1):
+    '''
+    Calculates the probability of tactus hypothesis given 'points'.
+
+    Calculates P(H | D) where H is a rho, delta tactus hypothesis and D is a
+    set of rho, delta, confidence points. 
+
+    P(r, d | t_i) prop= sum_{i} t_i.c * norm.pdf((t_i.r, t_i.d), mu=(r, d), 
+                                                 sigma=(rho_sigma, delta_sigma))
+
+    Args:
+        points: List[Tuple[Delta, Rho, Weight]]
+        delta_samples: delta values on which to calculate the distribution
+        rho_samples: rho values on which to calculate the distribution
+        delta_sigma: sigma used to weight the points relative to the sample
+        rho_sigma: sigma used to weight the points relative to the sample
+
+    Return:
+        DataFrame with columns rho, delta, weight where rho and delta are the
+        cross product of 'delta_samples' and 'rho_samples'.
+    '''
+    def weighted_sum(delta, rho, confs: List[Tuple[Delta, Rho, Conf]]):
+        # Asumes P(delta | D) and P(rho | D) independent
+        r_weight = norm.pdf([x[1] for x in confs], loc=rho, scale=rho_sigma)
+        d_weight = norm.pdf([x[0] for x in confs], loc=delta,
+                            scale=delta_sigma)
+        cs = np.array([x[2] for x in confs])
+        return (cs * r_weight * d_weight).sum()
+        #return sum((
+        #    norm.pdf(_d, loc=delta, scale=delta_sigma) *
+        #    norm.pdf(_r, loc=rho, scale=rho_sigma) * c
+        #    for _d, _r, c in confs))
+
+    hist2d = np.array([
+        (d, r, weighted_sum(d, r, points))
+        for d in delta_samples
+        for r in rho_samples
+    ])
+    print('#d: {}, #r: {}, #p {}'.format(len(delta_samples),
+                                          len(rho_samples),
+                                          len(points)))
+    hist2d[:, 2] = hist2d[:, 2] / hist2d[:, 2].sum()
+    return pd.DataFrame(hist2d, columns=('delta', 'rho', 'weight'))
+
+
+def tht_ht_points(hts: Dict[str, HypothesisTracker]):
+    '''
+    Extracts delta and rho points from HypothesisTracker set.
+
+    Returns:
+        List[Tuple[Delta, Rho, Conf]]
+    '''
+    conf_values = [(corr.n_delta, 
+                    (corr.n_rho % corr.n_delta) / corr.n_delta, 
+                    conf)
+                   for ht in hts.values()
+                   for (idx, corr), (_, conf) in zip(ht.corr, ht.confs)]
+    return conf_values
+
+
+def tht_grid(hts: Dict[str, HypothesisTracker]):
+    '''Calculates confidence map over rho and delta hypothesis space.
+
+    The confidence map is calculated by creating a grid over rho and delta
+    and on each point summing the confidence of hypothesis nearby.
+
+    The resulting map is normalized by the sum of values as a histogram.
+
+    Result:
+        (n x 3) array with columns as: rho_value, delta_value and conf
+    '''
+    delta_samples, rho_samples = ht_grid()
+
+    conf_values = tht_ht_points(hts)
+
+    df = ht_weighted_distribution(conf_values, delta_samples,
+                                  rho_samples)
+    return df[['rho', 'delta', 'weight']].values
