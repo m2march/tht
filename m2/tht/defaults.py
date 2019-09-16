@@ -4,8 +4,8 @@ from . import confidence
 from . import correction
 from . import similarity
 
-eval_f = confidence.all_history_eval
-corr_f = correction.lin_r_corr_opt
+eval_f = confidence.windowed_conf
+corr_f = correction.windowed_corr
 sim_f = similarity.min_dist_sim
 similarity_epsilon = 0.005
 max_delta = (60000.0 / 40),  # 40 bpm
