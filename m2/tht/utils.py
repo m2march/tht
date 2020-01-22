@@ -42,18 +42,18 @@ def project(xs, base, reference):
 
     play_it = mit.peekable(reference)
     proj_it = mit.peekable(zip(xs, _base))
-    last_play_onset = play_it.next()
+    last_play_onset = next(play_it)
     more_proj = True
     ret = []
     while more_proj:
         try:
-            last_proj_idx, last_proj_onset = proj_it.next()
+            last_proj_idx, last_proj_onset = next(proj_it)
             last_dist = abs(last_play_onset - last_proj_onset)
             try:
                 while True:
                     new_dist = abs(play_it.peek() - last_proj_onset)
                     if new_dist < last_dist:
-                        last_play_onset = play_it.next()
+                        last_play_onset = next(play_it)
                         last_dist = new_dist
                     else:
                         break
