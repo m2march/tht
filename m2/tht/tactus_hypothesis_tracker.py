@@ -4,7 +4,8 @@ to generate complete hypothesis trackers for the playback of a case."""
 from m2.tht import playback
 from m2.tht import defaults
 from m2.tht import hypothesis
-from m2.tht.correction import HypothesisCorrection
+from m2.tht.correction import HypothesisCorrection, windowed_corr
+from m2.tht import confidence
 import collections
 import logging
 from typing import *
@@ -197,3 +198,11 @@ def default_tht(**kwargs):
     config = defaults.config.copy()
     config.update(kwargs)
     return TactusHypothesisTracker(**config)
+
+
+jnmr_tht = default_tht(
+    **{
+        'eval_f': confidence.WindowedExpEval(6000),
+        'corr_f': windowed_corr
+    }
+)
