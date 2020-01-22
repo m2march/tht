@@ -1,7 +1,7 @@
 """Module containing functions to evaluate the confidence of a hypothesis
 over a ongoing playback."""
 
-from . import utils
+from m2.tht import utils
 import m2.povel1985
 import scipy.stats as st
 import numpy as np
