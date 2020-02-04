@@ -178,8 +178,8 @@ def ht_grid(min_delta=tht_defaults.min_delta,
         delta_values: List
         rho_values: List
     '''
-    delta_values = np.linspace(tht_defaults.min_delta,
-                               tht_defaults.max_delta,
+    delta_values = np.linspace(min_delta,
+                               max_delta,
                                num=delta_sample_num)
     rho_values = np.linspace(0, 1, num=rho_sample_num)
 
