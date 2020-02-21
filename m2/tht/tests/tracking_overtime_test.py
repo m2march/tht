@@ -11,14 +11,14 @@ def basic_hts_mock(mocker):
     onset_times = [0, 100, 200, 300]
 
     h1 = m.MagicMock()
-    h1.confs = zip(range(1, 4), [1, 1, 4])
-    h1.corr = zip(range(1, 4), [m.MagicMock() for _ in range(3)])
+    h1.confs = list(zip(range(1, 4), [1, 1, 4]))
+    h1.corr = list(zip(range(1, 4), [m.MagicMock() for _ in range(3)]))
     h1.onset_times = onset_times
     h1.__repr__ = m.Mock(return_value='h1')
 
     h2 = m.MagicMock()
-    h2.confs = zip(range(2, 4), [2, 3])
-    h2.corr = zip(range(2, 4), [m.MagicMock() for _ in range(1, 3)])
+    h2.confs = list(zip(range(2, 4), [2, 3]))
+    h2.corr = list(zip(range(2, 4), [m.MagicMock() for _ in range(1, 3)]))
     h2.onset_times = onset_times
     h2.__repr__ = m.Mock(return_value='h2')
 
@@ -60,7 +60,7 @@ def test_overtime_tracking_init(basic_hts_mock):
     assert hts_at_time.onset_times == b.onset_times
     assert sorted(hts_at_time.time.keys()) == b.onset_times[1:]
     hts_at_sorted_time = list(hts_at_time.hypothesis_by_time())
-    print hts_at_sorted_time
+    print(hts_at_sorted_time)
     equalsToMatchers(hts_at_sorted_time[0][1],
                      [matchesHypothesisAtTime(hts=b.h1, onset_idx=1, conf=1)])
     equalsToMatchers(hts_at_sorted_time[1][1],

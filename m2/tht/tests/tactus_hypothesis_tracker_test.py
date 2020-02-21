@@ -25,10 +25,10 @@ class TrimSimHypothesisTest(unittest.TestCase):
         tht = tactus_hypothesis_tracker.TactusHypothesisTracker(
             None, None, sim_f, 0.00001, None, None, None)
         kept, trimmed = tht._trim_similar_hypotheses(range(2, 10), sim_f)
-        self.assertEquals(sim_f.calls,
-                          [(2, x) for x in xrange(3, 10)] +
-                          [(3, 5), (3, 7), (3, 9)] +
-                          [(5, 7)])
+        self.assertEqual(sim_f.calls,
+                         [(2, x) for x in range(3, 10)] +
+                         [(3, 5), (3, 7), (3, 9)] +
+                         [(5, 7)])
         self.assertEqual(kept, [2, 3, 5, 7])
         self.assertEqual(trimmed,
                          [(4, 2), (6, 2), (8, 2)] +
@@ -37,7 +37,7 @@ class TrimSimHypothesisTest(unittest.TestCase):
     def test_k_best_hypothesis(self):
         HT = collections.namedtuple('HT', ['id', 'conf'])
         hts = [HT(idx, 7 if idx % 3 == 0 else idx)
-               for idx in xrange(11)]
+               for idx in range(11)]
         tht = tactus_hypothesis_tracker.TactusHypothesisTracker(
             None, None, None, None, None, None, 5)
         k_best, other = tht._split_k_best_hypotheses(hts)
@@ -45,14 +45,16 @@ class TrimSimHypothesisTest(unittest.TestCase):
         self.assertEqual(other, [hts[1], hts[2], hts[4],
                                  hts[5], hts[7], hts[9]])
 
+def id_corr_f(ht, op):
+    return correction.HypothesisCorrection(ht.r, ht.d, ht.r, ht.d)
 
 class TestHypothesisGeneration:
 
     def test_generated_hypothesis_with_no_restrictions(self, mocker):
-        onset_times = list(xrange(10))
+        onset_times = list(range(10))
         tht = tactus_hypothesis_tracker.TactusHypothesisTracker(
                 eval_f=lambda ht, op: ht.r,
-                corr_f=lambda ht, op: mocker.MagicMock(return_value=ht),
+                corr_f=id_corr_f,
                 sim_f=lambda h, i, *a: False,
                 similarity_epsilon=0,
                 max_delta=1000,
@@ -64,10 +66,10 @@ class TestHypothesisGeneration:
 
     def test_generated_hypothesis_with_max_hypothesis_restriction(self,
             mocker):
-        onset_times = list(xrange(10))
+        onset_times = list(range(10))
         tht = tactus_hypothesis_tracker.TactusHypothesisTracker(
                 eval_f=lambda ht, op: ht.r,
-                corr_f=lambda ht, op: mocker.MagicMock(return_value=ht),
+                corr_f=id_corr_f,
                 sim_f=lambda h, i, *a: False,
                 similarity_epsilon=0,
                 max_delta=1000,
@@ -77,10 +79,10 @@ class TestHypothesisGeneration:
         assert len(hts) == 10
 
     def test_generated_hypothesis_with_max_delta_restriction(self, mocker):
-        onset_times = list(xrange(10))
+        onset_times = list(range(10))
         tht = tactus_hypothesis_tracker.TactusHypothesisTracker(
                 eval_f=lambda ht, op: ht.r,
-                corr_f=lambda ht, op: mocker.MagicMock(return_value=ht),
+                corr_f=id_corr_f,
                 sim_f=lambda h, i, *a: False,
                 similarity_epsilon=0,
                 max_delta=1,
@@ -91,7 +93,7 @@ class TestHypothesisGeneration:
         
         tht = tactus_hypothesis_tracker.TactusHypothesisTracker(
                 eval_f=lambda ht, op: ht.r,
-                corr_f=lambda ht, op: mocker.MagicMock(return_value=ht),
+                corr_f=id_corr_f,
                 sim_f=lambda h, i, *a: False,
                 similarity_epsilon=0,
                 max_delta=2,
@@ -101,10 +103,10 @@ class TestHypothesisGeneration:
         assert len(hts) == 9 + 8
 
     def test_generated_hypothesis_with_min_delta_restriction(self, mocker):
-        onset_times = list(xrange(10))
+        onset_times = list(range(10))
         tht = tactus_hypothesis_tracker.TactusHypothesisTracker(
                 eval_f=lambda ht, op: ht.r,
-                corr_f=lambda ht, op: mocker.MagicMock(return_value=ht),
+                corr_f=id_corr_f,
                 sim_f=lambda h, i, *a: False,
                 similarity_epsilon=0,
                 max_delta=3,
@@ -114,7 +116,7 @@ class TestHypothesisGeneration:
         assert len(hts) == 7
 
 
-onset_times = list(xrange(10))
+onset_times = list(range(10))
 proj_1 = lambda xs: [x[0] for x in xs]
 
 @pytest.fixture
@@ -135,7 +137,7 @@ class TestGeneralTrackingResults:
         
 
     def test_deltas_in_range(self, hts):
-        print [ht.d for ht in hts.values()]
+        print([ht.d for ht in hts.values()])
         assert all([ht.d >= 2 and ht.d <= 4
                     for ht in hts.values()
                     ])

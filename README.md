@@ -3,19 +3,17 @@
 This repository contains the `Tactus Hypothesis Tracker` model.
 
 The `Tactus Hypothesis Tracker` is a model for cognitive 
-[tactus](http://en.wikipedia.org/wiki/Pulse_%28music%29) tracking (as in
-keeping the beat of a song with your foot). *Tactus inference* means the model
-"listens" to the song and tries to keep track of it's tactus. More
+[tactus or beat](http://en.wikipedia.org/wiki/Pulse_%28music%29) tracking (as
+in keeping the beat of a song with your foot). *Tactus inference* means the
+model "listens" to the song and tries to keep track of it's tactus. More
 specifically, the model returns analytic information that allows for further
-analysis such as: which is the most probable tactus at each part of the song?,
-how probable is that tactus?, are there more possible tactus?, when does it
-change?, did the same feeling of tactus adapt to the song or was it overuled by
+analysis such as: which is the most probable tactus at each part of the song?
+how probable is that tactus? are there more possible tactus? when does it
+change? did the same feeling of tactus adapt to the song or was it overuled by
 another tactus feeling?
 
-The model was built intended to mimic the reasoning and workings behind the
-tactus tracking as a cognitive event. More information can be seen in the Ms
-Thesis of the author (*link missing*).
-
+The model was built with the intention to mimic the reasoning and workings
+behind the tactus tracking as a cognitive event. 
 
 ### Dependencies
 
@@ -32,8 +30,6 @@ And this dependency that need to be downloaded independently:
 
 * [python-midi](https://github.com/vishnubob/python-midi)
 
-
-It also uses `unittest` and `mock` for the tests.
 
 ## Results
 
