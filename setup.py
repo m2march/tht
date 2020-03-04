@@ -14,6 +14,9 @@ setup(name='tht',
           'pytest-mock',
           'numpy',
           'more_itertools',
-          'pytest'
+          'pytest',
+          'filetype',
+          'pandas',
+          'scipy'
       ]
       )

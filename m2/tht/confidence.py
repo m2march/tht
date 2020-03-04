@@ -2,11 +2,11 @@
 over a ongoing playback."""
 
 from m2.tht import utils
-import m2.povel1985
 import scipy.stats as st
 import numpy as np
 import m2.tht.playback as play
 from m2.tht import hypothesis
+import warnings
 
 
 def gaussian_weight(distances):
@@ -130,25 +130,6 @@ class EvalAssembler:
                        ht, proj))
 
 
-class PovelAccentConfMod:
-    '''
-    Function class for evaluating a hypothesis where confidence on each beat
-    onset is multiplied if the onset is accented according to Povel 1981 rules.
-    '''
-
-    def __init__(self, accent_multiplier):
-        self.multiplier = accent_multiplier
-
-    def __call__(self, ht, proj, discovered_onsets, confs):
-        accents = set(m2.povel1985.accented_onsets(discovered_onsets))
-        accented_confs = [
-            c * self.multiplier
-            for c, o in zip(confs, discovered_onsets)
-            if o in accents
-        ]
-        return proj, discovered_onsets, accented_confs
-
-
 class OnsetRestrictedConfMod:
     '''
     Function class for evaluating a hypothesis on a restricted set of the onsets
@@ -236,8 +217,35 @@ conf_prev = EvalAssembler([TimeRestrictedConfMod(1000, 1, 5)], [])
 conf_all_w_prior = EvalAssembler([], [DeltaPriorEndMod()])
 conf_prev_w_prior = EvalAssembler([TimeRestrictedConfMod(5000)],
                                   [DeltaPriorEndMod()])
-conf_accents_prior = EvalAssembler([PovelAccentConfMod(4)], [DeltaPriorEndMod()])
-conf_accents_prev_prior = EvalAssembler(
-    [PovelAccentConfMod(4), TimeRestrictedConfMod(1000)], [DeltaPriorEndMod()])
 
 windowed_conf = WindowedExpEval(6000)
+
+
+try:
+    import m2.povel1985
+    class PovelAccentConfMod:
+        '''
+        Function class for evaluating a hypothesis where confidence on each beat
+        onset is multiplied if the onset is accented according to Povel 1981 rules.
+        '''
+
+        def __init__(self, accent_multiplier):
+            self.multiplier = accent_multiplier
+
+        def __call__(self, ht, proj, discovered_onsets, confs):
+            accents = set(m2.povel1985.accented_onsets(discovered_onsets))
+            accented_confs = [
+                c * self.multiplier
+                for c, o in zip(confs, discovered_onsets)
+                if o in accents
+            ]
+            return proj, discovered_onsets, accented_confs
+
+    conf_accents_prior = EvalAssembler([PovelAccentConfMod(4)], [DeltaPriorEndMod()])
+    conf_accents_prev_prior = EvalAssembler(
+        [PovelAccentConfMod(4), TimeRestrictedConfMod(1000)], [DeltaPriorEndMod()])
+except ImportError as ie:
+    warnings.warn('Code to measure hypothesis confidence with Povel and Essens'
+                  ' 1985 accent algorithm could not be instanced given that '
+                  ' module m2.povel1985 is not installed.')
+
