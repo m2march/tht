@@ -1,10 +1,8 @@
 #!/usr/bin/python
-'''Utility to run the Tactus Hypothesis Tracker model on a midi file.
+'''
+Utility to run the Tactus Hypothesis Tracker model on a music file.
 
-Usage: python tht.py in_file out_file
-
-in_file can be either a midi or an audio file (mp3, wav)
-out_file can be either a pickle (.pkl) or table (.csv)
+Input files can be either an audio file (mp3 or wav) or a midi file.
 '''
 
 import sys
@@ -13,25 +11,46 @@ import pickle
 
 import pandas as pd
 import numpy as np
+import argparse
+import m2.tht.tracker_analysis as ta
 
 from sys import argv
 from m2.tht import tactus_hypothesis_tracker
 from m2 import midi
-from absl import flags
-from absl import app
 from m2.beatroot import beatroot
 
-FLAGS = flags.FLAGS
+def get_output_type(args):
+    if args.out_file is not None and (not (args.out_file.endswith('pkl') or
+                                           args.out_file.endswith('csv'))):
+        raise argparse.ArgumentError('out_file', 
+                                     'Out file has an invalid output type')
+    else:
+        file_type = (None 
+                     if args.out_file is None 
+                     else ('pkl' 
+                           if args.out_file.endswith('pkl') 
+                           else 'csv')
+                    )
+
+    args_type = args.type if args.type is not None else None
+    final_type = args_type if args_type is not None else file_type
+
+    if (file_type is not None and 
+        args_type is not None and 
+        args_type != file_type):
+        raise ValueError('Output filetype and argument type incompatible')
+
+    if final_type == 'pkl' and args.out_file is None:
+        raise ValueError('Cannot write pickle output if no out_file is '
+                         'declared')
+
+    return final_type if final_type is not None else 'csv'
 
 
-def main(argv):
-    if len(argv) < 3:
-        print('Not enough parameters provided.\n'
-              'Usage: python tht.py in_file out_file')
+def main(args):
     tht = tactus_hypothesis_tracker.default_tht()
 
-    in_file = argv[1]
-    out_file = argv[2]
+    in_file = args.in_file
     
     in_ft = filetype.guess(in_file)
     if in_ft is None:
@@ -39,7 +58,7 @@ def main(argv):
         sys.exit()
 
     if (in_ft.extension.startswith('midi')):
-        m = midi.MidiPlayback(argv[1])
+        m = midi.MidiPlayback(in_file)
         onsets = m.onset_times_in_ms()
     else:
         onsets = beatroot(in_file, onsets=True)
@@ -47,25 +66,64 @@ def main(argv):
 
     trackers = tht(onsets)
 
-    if (out_file.endswith('pkl')):
-        with open(out_file, 'wb') as f:
-            pickle.dump(trackers, f)
-    elif (out_file.endswith('csv')):
-        d = pd.DataFrame([
-            {
-                'a': tracker.onset_indexes[0],
-                'b': tracker.onset_indexes[1],
-                'onset_index': corr[0],
-                'onset_time': tracker.onset_times[corr[0]],
-                'score': conf[1],
-                'phase': corr[1].n_rho,
-                'period': corr[1].n_delta 
-            }
-            for name, tracker in trackers.items()
-            for corr, conf in zip(tracker.corr, tracker.confs)
-        ])
-        d.to_csv(out_file, index=False, float_format='%.6f')
+    if args.mode == 'full':
+        output_type = get_output_type(args) 
+        if (output_type == 'pkl'):
+            with open(args.out_file, 'wb') as f:
+                pickle.dump(trackers, f)
+        elif (output_type == 'csv'):
+            d = pd.DataFrame([
+                {
+                    'a': tracker.onset_indexes[0],
+                    'b': tracker.onset_indexes[1],
+                    'onset_index': corr[0],
+                    'onset_time': tracker.onset_times[corr[0]],
+                    'score': conf[1],
+                    'phase': corr[1].n_rho,
+                    'period': corr[1].n_delta 
+                }
+                for name, tracker in trackers.items()
+                for corr, conf in zip(tracker.corr, tracker.confs)
+            ])
+            if args.out_file:
+                d.to_csv(args.out_file, index=False, float_format='%.6f')
+            else:
+                print(d.to_csv(index=False, float_format='%.6f'))
+    elif args.mode == 'beat':
+        top_hts = ta.top_hypothesis(trackers, len(onsets))
+        beats = ta.produce_beats_information(onsets, top_hts)
+        if args.out_file:
+            with open(args.out_file, 'w') as f:
+                for b in beats:
+                    f.write('{}\n'.format(b))
+        else:
+            for b in beats:
+                print(b)
+    elif args.mode == 'congruence':
+        conf_values = ta.tht_tracking_confs(trackers, len(onsets))
+        if args.out_file:
+            with open(args.out_file, 'w') as f:
+                for t, c in conf_values:
+                    f.write('{} {}\n'.format(t, c))
+        else:
+            for t, c in conf_values:
+                print('{} {}'.format(t, c))
 
 
 if __name__ == '__main__':
-    app.run(main)
+    parser = argparse.ArgumentParser(description=globals()['__doc__'])
+    parser.add_argument('mode', choices=['full', 'beat', 'congruence'])
+    parser.add_argument('in_file', help='input filename', type=str)
+    parser.add_argument('-o', '--out_file', 
+                        help=('Output filename. If missing, outputs to '
+                              'stdout. In case of full output, if '
+                              'no --type is specified, '
+                              'output type is inferred from the '
+                              'extension (either .pkl or .csv)'))
+    g = parser.add_argument_group(
+        'full', 'THT outputs the full evolution of the hypothesis trackers')
+    g.add_argument('-t', '--type', choices=['csv', 'pkl'],
+                   help='Output either a binary pickle or a text csv')
+    
+    args = parser.parse_args()
+    main(args)

@@ -1,7 +1,7 @@
 '''This module contains a class with methods to perform analysis of the tactus
 phase.'''
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union, Optional
 from . import tactus_hypothesis_tracker
 import numpy as np
 from m2.tht.tactus_hypothesis_tracker import HypothesisTracker
@@ -265,3 +265,47 @@ def tht_grid(hts: Dict[str, HypothesisTracker]):
     df = ht_weighted_distribution(conf_values, delta_samples,
                                   rho_samples)
     return df[['rho', 'delta', 'weight']].values
+
+
+def tht_tracking_confs(tht_pkl_fn: Union[str, Dict[str, HypothesisTracker]], 
+                      onset_count: Optional[int] = None) -> [float, float]:
+    '''
+    Obtains the tracking confidence from a tht pickle as the avg top conf.
+
+    Args:
+        tht_pkl_fn: either:
+            * filename of the tht tracking pickle
+            * unpickled tracking (dict[str, HypothesisTracker])
+        onset_count: total number of onsets or None
+
+    Returns:
+        list of confidence values at each timepoint :: [ms, confidence score]
+    '''
+    if isinstance(tht_pkl_fn, str):
+        with open(tht_pkl_fn, 'rb') as f:
+            hts = pickle.load(f)
+    else:
+        hts = tht_pkl_fn
+
+    if onset_count is None:
+        onset_count = max([o for ht in hts.values() for o, c in ht.confs])
+
+    top_hts = top_hypothesis(hts, onset_count)
+
+    conf_values = [(ht.onset_times[idx], dict(ht.confs)[idx]) 
+                   for idx, ht in top_hts]
+
+    return conf_values
+
+
+def tht_tracking_conf(tht_pkl_fn: Union[str, Dict[str, HypothesisTracker]], 
+                      onset_count: Optional[int] = None) -> float:
+    '''
+    Mean tht top tracking confidence.
+
+    See tht_tracking_confs for parameters details.
+    '''
+    time_values, conf_values = zip(*tht_tracking_confs(tht_pkl_fn,
+                                                       onset_count))
+
+    return np.mean(conf_values)
