@@ -2,77 +2,74 @@
 
 This repository contains the `Tactus Hypothesis Tracker` model.
 
-The `Tactus Hypothesis Tracker` is a model for cognitive 
-[tactus or beat](http://en.wikipedia.org/wiki/Pulse_%28music%29) tracking (as
-in keeping the beat of a song with your foot). *Tactus inference* means the
-model "listens" to the song and tries to keep track of it's tactus. More
-specifically, the model returns analytic information that allows for further
-analysis such as: which is the most probable tactus at each part of the song?
-how probable is that tactus? are there more possible tactus? when does it
-change? did the same feeling of tactus adapt to the song or was it overuled by
-another tactus feeling?
+The `Tactus Hypothesis Tracker` is a model for 
+[tactus or beat](http://en.wikipedia.org/wiki/Pulse_%28music%29) expectation. 
+The model works as a beat tracking model (as
+in keeping the beat of a song with your foot) but also analyses how strong is
+the feeling of the beat throughout the tracking.
+
+More specifically, the model returns analytic information that allows for
+further analysis such as: which is the most probable tactus at each part of the
+song?  how probable is that tactus? are there more possible tactus? when does
+it change? did the same feeling of tactus adapt to the song or was it overruled
+by another tactus feeling?
 
 The model was built with the intention to mimic the reasoning and workings
 behind the tactus tracking as a cognitive event. 
 
-### Dependencies
+## Installation
 
-The code here presented has the following dependencies declared in it's setup
-script:
+The module can be installed using `setuptools` standard `setup.py` but some
+dependencies are not available on pip. Therefor, the whole codebase should be
+installed from https://github.com/m2march/tht-dist .
 
-* [numpy](http://www.numpy.org/)
-* [more_itertools](https://pypi.python.org/pypi/more-itertools)
-* [py.test](https://pytest.org)
-* [pytest-mock](https://pypi.python.org/pypi/pytest-mock)
-* [addict](https://github.com/mewwts/addict)
+## Usage
 
-And this dependency that need to be downloaded independently:
+The `tht` script allows for three different usages:
 
-* [python-midi](https://github.com/vishnubob/python-midi)
+### full
+
+    tht full input.wav
+
+The full modality outputs information for entire tracking. The tracking process
+works in an agent-based fashion, where each agent holds a possible tactus
+hypothesis and are hence called `hypothesis tracker`s. Each tracker has an
+initial tactus hypothesis (defined by a _phase_ and _period_ of the beat) that
+evolves over time. Along with how the parameter changes, each hypothesis has a
+_congruency score_, which rates how fit is the beat tracked to the music heard.
+
+The `full` output can be produced as a table (`-t csv`) or as a python pickle 
+(`-t pkl -o out_file`). The csv looks like the one below.
 
 
-## Results
+  a    b    onset_index    onset_time     score       phase    period
+---  ---  -------------  ------------  --------  ----------  --------
+  0    1              1       501.042  1            1.04167   500
+  0    1              2      1001.04   1            1.04167   500
+  0    1              3      1501.04   1            1.04167   500
+  0    2              2      1001.04   0.666667     1.04167  1000
+  0    2              3      1501.04   0.5          1.04167  1000
+  0    2              4      2001.04   0.6          1.04167  1000
+  8    9              9      4751.04   0.074675  4248.59      499.045
+  8    9             10      5251.04   0.116558  4251.8       498.88
+  8    9             11      5751.04   0.155319  4254.02      498.44
 
-The `tht.py` program outputs the whole analysis performed. This means, a list
-of all considered hypotheses and how the evolved over time. The output will
-then have the following structure:
 
-    ht name 26-27
-    ht beta 13170.833333 533.854167
-    ht corr 28 13188.442296 535.196325
-    ht corr 29 13196.568261 536.048022
-    ht corr 30 13199.750474 536.640084
-    ht corr 31 13198.257970 537.017380
-    ...
-    ht conf 28 0.123900
-    ht conf 29 0.119647
-    ht conf 30 0.116557
-    ...
-    ht name 8-10
-    ht beta 5077.083333 871.354167
-    ht corr 11 5076.121179 873.019412
-    ht corr 12 5076.359505 874.925853
-    ht corr 13 5070.605792 875.163430
-    ht corr 14 5088.399924 881.281182
-    ...
+### congruence
 
-All lines starting with `ht` contains information about a hypothesis. An `ht
-name` line provides the name of the hypothesis and establishes that all
-following lines until the next `ht name` line will be related to that
-hypothesis. Currently, all information related to one hypothesis is given in a
-batch. This means that once you start reading information of a hypothesis no
-information of other hypothesis will show up until the end of the first one.
+	tht congruence input.wav
 
-Other lines present in the output are:
+The congruence modality produces the congruency score for the higher ranking 
+hypothesis throughout the passage. The output is a time point and a score value 
+per line.
 
-* `ht beta _phase_ _delta_` where _phase_ and _delta_ are the phase and
-    inter-pulse-interval of the tactus, respectively, of the moment the
-    hypothesis was first created. Values are in milliseconds.
-* `ht conf _n_ _value_` provide the confidence _value_ of the hypothesis at
-    onset _n_ of the playback.
-* `ht corr _n_ _phase_ _delta_` define the correction made to the hypothesis at
-    onset _n_ with _phase_ and _delta_ defining the tactus after the
-    correction.
+
+### beat
+
+	tht beat input.wav
+
+The beat modality produces a final beat tracking. The output is a serie of beat 
+times (in ms), one beat per line.
 
 
 ## Model implementation 
