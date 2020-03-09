@@ -8,6 +8,7 @@ setup(name='tht',
       author='Martin "March" Miguel',
       author_email='m2.march@gmail.com',
       packages=find_packages(),
+      scripts=['scripts/tht'],
       namespace_packages=['m2'],
       install_requires=[
           'addict',
