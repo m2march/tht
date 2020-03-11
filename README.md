@@ -10,18 +10,19 @@ the feeling of the beat throughout the tracking.
 
 More specifically, the model returns analytic information that allows for
 further analysis such as: which is the most probable tactus at each part of the
-song?  how probable is that tactus? are there more possible tactus? when does
+song? how probable is that tactus? are there more possible tacti? when does
 it change? did the same feeling of tactus adapt to the song or was it overruled
-by another tactus feeling?
+by another beat?
 
 The model was built with the intention to mimic the reasoning and workings
-behind the tactus tracking as a cognitive event. 
+behind the tactus tracking as a cognitive process. 
 
 ## Installation
 
 The module can be installed using `setuptools` standard `setup.py` but some
 dependencies are not available on pip. Therefor, the whole codebase should be
-installed from https://github.com/m2march/tht-dist .
+installed from https://github.com/m2march/tht-dist (See installation
+instructions there).
 
 ## Usage
 
@@ -68,8 +69,8 @@ per line.
 
 	tht beat input.wav
 
-The beat modality produces a final beat tracking. The output is a serie of beat 
-times (in ms), one beat per line.
+The beat modality produces a final beat tracking. The output is a series of
+beat times (in ms), one beat per line.
 
 
 ## Model implementation 
@@ -87,3 +88,6 @@ directory. The following is a breakdown of the implemented parts:
     fit the ongoing playback.
 * `similarity.py` contains the similarity measure function between two
     hypothesis.
+* `tracker_analysis.ph` contains utilities to analyze the output of the
+    tracking procedure. It is used to go from the `full` output to the `beat`
+    and `congruency` outputs.
