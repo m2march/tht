@@ -89,7 +89,8 @@ class TactusHypothesisTracker():
     logger = logging.getLogger('TactusHypothesisTracker')
 
     def __init__(self, eval_f, corr_f, sim_f, similarity_epsilon,
-                 min_delta, max_delta, max_hypotheses):
+                 min_delta, max_delta, max_hypotheses, 
+                 archive_hypotheses=False):
         self.eval_f = eval_f
         self.corr_f = corr_f
         self.sim_f = sim_f
@@ -97,6 +98,7 @@ class TactusHypothesisTracker():
         self.min_delta = min_delta
         self.max_delta = max_delta
         self.max_hypotheses = max_hypotheses
+        self.archive_hypotheses = archive_hypotheses
 
     def __call__(self, onset_times):
         """
@@ -113,6 +115,7 @@ class TactusHypothesisTracker():
                           len(onset_times), onset_times)
         ongoing_play = playback.OngoingPlayback(onset_times)
         hypothesis_trackers = []
+        archived_hypotheses = []
         while ongoing_play.advance():
             n_hts = list(self._generate_new_hypothesis(ongoing_play))
             self.logger.debug('New step. %d hypothesis created', len(n_hts))
@@ -133,10 +136,13 @@ class TactusHypothesisTracker():
                               ongoing_play.discovered_index,
                               str([str(h) for h in other_hs]))
             hypothesis_trackers = k_best_hs
+            if (self.archive_hypotheses):
+                archived_hypotheses.extend(other_hs)
             self.logger.debug('End of step. %d trackers remaining',
                               len(hypothesis_trackers))
 
-        return dict([(ht.name, ht) for ht in hypothesis_trackers])
+        return dict([(ht.name, ht) 
+                     for ht in archived_hypotheses + hypothesis_trackers])
 
     def _generate_new_hypothesis(self, ongoing_play):
         "Generates new hypothesis trackers given discovered onset in playback."

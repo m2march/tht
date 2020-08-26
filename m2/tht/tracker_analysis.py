@@ -5,9 +5,11 @@ from typing import Dict, List, Tuple, Union, Optional
 from . import tactus_hypothesis_tracker
 import numpy as np
 from m2.tht.tactus_hypothesis_tracker import HypothesisTracker
+from m2.tht import hypothesis
 import m2.tht.defaults as tht_defaults
 from scipy.stats import spearmanr, pearsonr, norm
 import pandas as pd
+import pickle
 
 Delta = float
 Rho = float
@@ -62,7 +64,7 @@ def hypothesis_ranks_overtime(hypothesis_trackers, playback_length):
         enhanced_trackers = [(item[0], sort_key(item))
                              for item in [(t, dict(t.confs)) for t
                                           in list(hypothesis_trackers.values())]
-                             if sort_key(item)]
+                             if sort_key(item) is not None]
         sorted_trackers = sorted(enhanced_trackers, key=lambda x: x[1],
                                  reverse=True)
         results.append((i, sorted_trackers))
@@ -124,7 +126,8 @@ def top_hypothesis(hts, onset_times_count):
     return list(_top_hypothesis_iter())
 
 
-def produce_beats_information(onset_times, top_hts):
+def produce_beats_information(onset_times, top_hts, adapt_period=False,
+                              max_delta_bpm=160):
     '''
     Runs through trackers and onset times, generating beats by projecting each
     top hypothesis correction at that onset time on the interval between said
@@ -150,6 +153,11 @@ def produce_beats_information(onset_times, top_hts):
         onset_idx, top_ht = top_hts[idx]
         left_limit, right_limit = onset_limits[idx]
         iht = dict(top_ht.corr)[onset_idx].new_hypothesis()
+        if adapt_period:
+            d = iht.d
+            while (60000 / d) > max_delta_bpm:
+                d = d * 2
+            iht = hypothesis.Hypothesis(iht.r, d)
         beats = np.array(iht.proj_in_range(left_limit, right_limit))
         for beat in beats[1:]:
             ret.append(beat)
