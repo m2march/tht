@@ -5,7 +5,7 @@ from typing import Dict, List, Tuple, Union, Optional
 from . import tactus_hypothesis_tracker
 import numpy as np
 from m2.tht.tactus_hypothesis_tracker import HypothesisTracker
-from m2.tht import hypothesis
+from m2.tht import hypothesis, playback
 import m2.tht.defaults as tht_defaults
 from scipy.stats import spearmanr, pearsonr, norm
 import pandas as pd
@@ -127,7 +127,8 @@ def top_hypothesis(hts, onset_times_count):
 
 
 def produce_beats_information(onset_times, top_hts, adapt_period=False,
-                              max_delta_bpm=160):
+                              max_delta_bpm=160, adapt_phase=None,
+                              avoid_quickturns=None):
     '''
     Runs through trackers and onset times, generating beats by projecting each
     top hypothesis correction at that onset time on the interval between said
@@ -136,6 +137,15 @@ def produce_beats_information(onset_times, top_hts, adapt_period=False,
     Args:
         onset_times :: [ms]
         top_hts :: [(onset_idx, HypothesisTracker)]
+        adapt_period :: Bool - Whether top hypothesis projection period should
+                               be adapted to be slow enough (see 'max_delta_bpm')
+        max_delta_bpm :: bpm - max projection delta (in bpm)
+        adapt_phase :: conf_function - function used to evaluate possible phase
+                                       values. None is phase should not be
+                                       adapted.
+        avoid_quickturns :: ms - avoid switching hypothesis if its not the new
+                                 top hypothesis for longer than
+                                 'avoid_quickturns'
 
     Returns:
         :: [ms]
@@ -149,15 +159,48 @@ def produce_beats_information(onset_times, top_hts, adapt_period=False,
     assert len(onset_limits) == len(top_hts)
 
     ret = []
+    last_ht = None
+    suggested_change_ht = None
+    suggested_change_time = None
+    phase_corr = 0
     for idx in range(len(onset_limits)):
         onset_idx, top_ht = top_hts[idx]
         left_limit, right_limit = onset_limits[idx]
         iht = dict(top_ht.corr)[onset_idx].new_hypothesis()
+        if avoid_quickturns != None:
+            if last_ht == None:
+                last_ht = top_ht
+            elif (top_ht.origin_onsets() != last_ht.origin_onsets()):
+                current_time = onset_times[onset_idx]
+                if (suggested_change_ht == None or top_ht.origin_onsets() != suggested_change_ht.origin_onsets()):
+                    suggested_change_ht = top_ht
+                    suggested_change_time = current_time
+                    iht = dict(last_ht.corr)[onset_idx].new_hypothesis()
+                elif (suggested_change_ht.origin_onsets() == top_ht.origin_onsets() and 
+                      current_time - suggested_change_time < avoid_quickturns):
+                    iht = dict(last_ht.corr)[onset_idx].new_hypothesis()
+                else:
+                    last_ht = top_ht
+
         if adapt_period:
             d = iht.d
+            divisions = 0
             while (60000 / d) > max_delta_bpm:
+                divisions += 1
                 d = d * 2
-            iht = hypothesis.Hypothesis(iht.r, d)
+            if (adapt_phase is not None and 
+                (last_ht is None or 
+                 last_ht.origin_onsets() != top_ht.origin_onsets())):
+                possible_k = list(range(2 ** divisions))
+                phase_corr = max(
+                    possible_k, 
+                    key=lambda k: adapt_phase(
+                        hypothesis.Hypothesis(iht.r + iht.d * k , d),
+                        playback.Playback(onset_times[:onset_idx]))
+                )
+
+            r = iht.r + iht.d * phase_corr
+            iht = hypothesis.Hypothesis(r, d)
         beats = np.array(iht.proj_in_range(left_limit, right_limit))
         for beat in beats[1:]:
             ret.append(beat)
