@@ -90,7 +90,10 @@ def main(args):
                 print(d.to_csv(index=False, float_format='%.6f'))
     elif args.mode == 'beat':
         top_hts = ta.top_hypothesis(trackers, len(onsets))
-        beats = ta.produce_beats_information(onsets, top_hts)
+        beats = ta.produce_beats_information(
+            onsets, top_hts, adapt_period=args.max_bpm is not None,
+            adapt_phase=tht.eval_f, max_delta_bpm=args.max_bpm,
+            avoid_quickturns=args.avoid_quickturns)
         if args.out_file:
             with open(args.out_file, 'w') as f:
                 for b in beats:
@@ -123,6 +126,12 @@ if __name__ == '__main__':
         'full', 'THT outputs the full evolution of the hypothesis trackers')
     g.add_argument('-t', '--type', choices=['csv', 'pkl'],
                    help='Output either a binary pickle or a text csv')
+    g = parser.add_argument_group(
+        'beat', 'THT outputs a beat tracking')
+    g.add_argument('--max_bpm', type=int, default=None,
+                   help='Maximum bpm value allowed for the output beat track')
+    g.add_argument('--avoid_quickturns', type=int, default=None,
+                   help='Time (in ms) required for a new top hypothesis to set')
     
     args = parser.parse_args()
     main(args)
