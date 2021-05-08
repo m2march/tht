@@ -21,14 +21,14 @@ def conf_exp(xs, proj, onsets, delta):
     return ret
 
 
-def conf(xs, proj, onsets, delta, mult, decay, weight_func=gaussian_weight):
+def conf(xs, proj, onsets, delta, mult, scale, weight_func=gaussian_weight):
     '''Confidence of a set of tactus projections over a playback.
 
     Complexity: O(|proj|) \in O(|ongoing_play|)
     '''
     xs, r_p, p = list(zip(*utils.project(xs, proj, onsets)))
     errors = np.array(p) - np.array(r_p) 
-    relative_errors = decay * errors / float(delta)
+    relative_errors = errors / (float(delta) * scale)
     ret = weight_func(relative_errors)
     return mult * ret
 
@@ -42,6 +42,20 @@ def all_history_eval_exp(ht, ongoing_play):
     '''
     xs, proj = zip(*ht.proj_with_x(ongoing_play))
     conf_sum = sum(conf_exp(xs, proj, ongoing_play.discovered_play(), ht.d))
+    return ((conf_sum / len(proj)) *
+            (conf_sum / len(ongoing_play.discovered_play())))
+
+
+def all_history_eval_gauss(ht, ongoing_play, scale=0.1):
+    '''
+    Evaluates a hypothesis on an ongoing_play. It takes into consideration the
+    whole history of the playback. Uses gaussian function for distance.
+
+    Complexity: O(|ongoing_play|)
+    '''
+    xs, proj = list(zip(*ht.proj_with_x(ongoing_play)))
+    conf_sum = sum(conf(xs, proj, ongoing_play.discovered_play(), 
+                        ht.d, 1, scale))
     return ((conf_sum / len(proj)) *
             (conf_sum / len(ongoing_play.discovered_play())))
 
@@ -60,7 +74,7 @@ class WindowedExpEval:
         return all_history_eval_exp(ht, play.Playback(discovered_play_f))
 
 
-def all_history_eval(ht, ongoing_play):
+def all_history_eval(ht, ongoing_play, scale=0.1):
     '''
     Evaluates a hypothesis on an ongoing_play. It takes into consideration the
     whole history of the playback.
@@ -69,7 +83,7 @@ def all_history_eval(ht, ongoing_play):
     '''
     xs, proj = list(zip(*ht.proj_with_x(ongoing_play)))
     conf_sum = sum(conf(xs, proj, ongoing_play.discovered_play(), 
-                        ht.d, 1, 0.01, lambda x: abs(x)))
+                        ht.d, 1, scale, lambda x: abs(x)))
     return ((conf_sum / len(proj)) *
             (conf_sum / len(ongoing_play.discovered_play())))
 
